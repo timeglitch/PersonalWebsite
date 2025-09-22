@@ -1,4 +1,3 @@
-import { useState } from "react";
 import "./App.css";
 import ProjectCard from "./components/ProjectCard";
 import Button from "./components/Button";
