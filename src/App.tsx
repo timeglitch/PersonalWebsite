@@ -1,4 +1,4 @@
-import { useState } from "react";
+//import { useState } from "react";
 import "./App.css";
 import ProjectCard from "./components/ProjectCard";
 import Button from "./components/Button";
@@ -45,6 +45,11 @@ function App() {
                     name="Satellite Tracker"
                     description="Visualize interpolated satellite data overlayed on EONET wildfire locations. Built with React, Three.js and a serverless proxy."
                     embedUrl="https://windborne-nu.vercel.app/"
+                />
+                <ProjectCard
+                    name="San Francisco Balalaika Ensemble Website"
+                    description="A website for the San Francisco Balalaika Ensemble, a local music group. Built in raw HTML/CSS/JavaScript, to make it as easy as possible to update and host."
+                    embedUrl="https://sfbalalaika.org"
                 />
                 <ProjectCard
                     name="Asset System GUI"
