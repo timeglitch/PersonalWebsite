@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
 type Project = {
@@ -53,9 +53,23 @@ const projects: Project[] = [
 
 function App() {
     const [activeIndex, setActiveIndex] = useState(0);
-    const [soundOn, setSoundOn] = useState(false);
+    const [soundOn, setSoundOn] = useState(() =>
+        window.matchMedia("(min-width: 901px)").matches,
+    );
     const audioContext = useRef<AudioContext | null>(null);
     const activeProject = projects[activeIndex];
+
+    useEffect(() => {
+        const desktopQuery = window.matchMedia("(min-width: 901px)");
+        const syncSoundWithViewport = (event: MediaQueryListEvent) => {
+            setSoundOn(event.matches);
+        };
+
+        desktopQuery.addEventListener("change", syncSoundWithViewport);
+        return () => {
+            desktopQuery.removeEventListener("change", syncSoundWithViewport);
+        };
+    }, []);
 
     const playTransportClick = () => {
         if (!soundOn) return;
@@ -83,7 +97,7 @@ function App() {
         <main className="portfolio-shell">
             <header className="masthead">
                 <a className="monogram" href="#top" aria-label="Frank Zhang, home">FZ</a>
-                <p>Selected work / 2023—25</p>
+                <p>Things I&apos;ve Built</p>
                 <button
                     className={`sound-toggle ${soundOn ? "is-on" : ""}`}
                     type="button"
@@ -95,22 +109,22 @@ function App() {
                 </button>
             </header>
 
-            <section className="intro" id="top" aria-labelledby="page-title">
-                <div className="issue-mark" aria-hidden="true">No. 01</div>
-                <h1 id="page-title">Frank<br />Zhang</h1>
-                <div className="intro-copy">
-                    <p className="eyebrow">Software engineer · Bay Area, CA</p>
-                    <p className="dek">I write software to solve problems—making useful, expressive things for the web and beyond.</p>
-                    <nav className="contact-links" aria-label="External links">
-                        <a href="https://github.com/timeglitch" target="_blank" rel="noreferrer">GitHub ↗</a>
-                        <a href="https://www.linkedin.com/in/frankjzhang/" target="_blank" rel="noreferrer">LinkedIn ↗</a>
-                        <a href="https://docs.google.com/document/d/1Ngmw-ZuhaUzupvgZQvM-1YMePI2_ZzQVlHGfEHZp_2Q/edit?usp=sharing" target="_blank" rel="noreferrer">Résumé ↗</a>
-                    </nav>
-                </div>
-            </section>
+            <div className="desktop-layout">
+                <div className="left-column">
+                    <section className="intro" id="top" aria-labelledby="page-title">
+                        <h1 id="page-title">Frank<br />Zhang</h1>
+                        <div className="intro-copy">
+                            <p className="eyebrow">Software engineer · Bay Area, CA</p>
+                            <p className="dek">I write software to solve problems—making useful, expressive things for the web and beyond.</p>
+                            <nav className="contact-links" aria-label="External links">
+                                <a href="https://github.com/timeglitch" target="_blank" rel="noreferrer">GitHub ↗</a>
+                                <a href="https://www.linkedin.com/in/frankjzhang/" target="_blank" rel="noreferrer">LinkedIn ↗</a>
+                                <a href="https://docs.google.com/document/d/1Ngmw-ZuhaUzupvgZQvM-1YMePI2_ZzQVlHGfEHZp_2Q/edit?usp=sharing" target="_blank" rel="noreferrer">Résumé ↗</a>
+                            </nav>
+                        </div>
+                    </section>
 
-            <section className="work" aria-labelledby="work-title">
-                <div className="project-index">
+                    <section className="project-index" aria-labelledby="work-title">
                     <div className="section-rule">
                         <h2 id="work-title">Projects</h2>
                         <span>{String(projects.length).padStart(2, "0")} entries</span>
@@ -137,6 +151,7 @@ function App() {
                             </li>
                         ))}
                     </ol>
+                    </section>
                 </div>
 
                 <article className="project-viewer" aria-live="polite">
@@ -160,11 +175,11 @@ function App() {
                         </div>
                     </div>
                 </article>
-            </section>
+            </div>
 
             <footer>
                 <span>Frank Zhang © {new Date().getFullYear()}</span>
-                <span>Built with curiosity and code.</span>
+                <a href="mailto:me@frankzhang.org">Contact me@frankzhang.org</a>
             </footer>
         </main>
     );

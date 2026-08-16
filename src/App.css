@@ -49,36 +49,22 @@
 
 .intro {
   position: relative;
-  min-height: 43vh;
-  display: grid;
-  grid-template-columns: minmax(400px, 1.2fr) minmax(300px, 0.8fr);
-  align-items: end;
-  gap: 5vw;
-  padding: clamp(32px, 5vh, 74px) 0 clamp(26px, 4vh, 56px);
+  padding: 0;
 }
 .intro h1 {
   margin: 0;
+  width: max-content;
   font-family: "Playfair Display", Georgia, serif;
-  font-size: clamp(88px, 10.6vw, 174px);
+  font-size: clamp(86px, 9.5vw, 156px);
   line-height: 0.72;
   letter-spacing: -0.075em;
   font-weight: 700;
 }
-.issue-mark {
-  position: absolute;
-  top: 20%;
-  left: 47%;
-  padding: 9px 10px;
-  transform: rotate(-5deg);
-  border: 1px solid var(--red);
-  border-radius: 50%;
-  color: var(--red);
-  font-family: "DM Mono", monospace;
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.intro-copy {
+  max-width: 610px;
+  margin-top: 28px;
+  padding: 0;
 }
-.intro-copy { max-width: 500px; padding: 0 4vw 3px 0; }
 .eyebrow, .project-role {
   margin: 0;
   color: var(--red);
@@ -89,9 +75,10 @@
   text-transform: uppercase;
 }
 .dek {
-  margin: 14px 0 28px;
-  font-size: clamp(18px, 1.55vw, 25px);
-  line-height: 1.35;
+  max-width: 570px;
+  margin: 10px 0 20px;
+  font-size: clamp(16px, 1.25vw, 20px);
+  line-height: 1.4;
   letter-spacing: -0.025em;
 }
 .contact-links { display: flex; flex-wrap: wrap; gap: 8px 22px; }
@@ -109,14 +96,19 @@
   border-color: var(--red);
 }
 
-.work {
-  min-height: 50vh;
+.desktop-layout {
+  min-height: calc(100vh - 104px);
   display: grid;
-  grid-template-columns: minmax(370px, 0.72fr) minmax(560px, 1.28fr);
-  gap: clamp(28px, 5vw, 90px);
-  padding: 0 0 46px;
+  grid-template-columns: minmax(330px, 0.52fr) minmax(650px, 1.48fr);
+  gap: clamp(28px, 3.4vw, 58px);
+  padding: 28px 0 18px;
 }
-.project-index { align-self: end; }
+.left-column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.project-index { margin-top: auto; }
 .section-rule {
   display: flex;
   justify-content: space-between;
@@ -172,8 +164,10 @@
 .mobile-project-detail { display: none; }
 
 .project-viewer {
-  align-self: end;
+  align-self: stretch;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--ink);
   background: #d5cfbd;
   box-shadow: 8px 9px 0 rgba(32, 31, 26, 0.12);
@@ -193,7 +187,8 @@
 .transport { color: var(--red); letter-spacing: 0.3em; }
 .viewer-window {
   position: relative;
-  aspect-ratio: 16 / 8.2;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
   background: #272820;
   animation: filmAdvance 270ms steps(4, end);
@@ -320,6 +315,8 @@ footer {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+footer a { text-decoration: none; }
+footer a:hover { color: var(--red); }
 
 @keyframes filmAdvance {
   0% { opacity: 0.25; transform: translateY(12%); filter: contrast(1.6); }
@@ -331,16 +328,27 @@ footer {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@media (min-width: 901px) and (max-width: 1100px) {
+  .desktop-layout {
+    grid-template-columns: minmax(300px, 0.52fr) minmax(520px, 1.48fr);
+    gap: 28px;
+  }
+
+  .intro h1 {
+    font-size: clamp(86px, 12vw, 132px);
+  }
+}
+
 @media (max-width: 900px) {
   .portfolio-shell { padding: 14px 16px 24px; }
   .masthead { grid-template-columns: 1fr 1fr; }
   .masthead p { display: none; }
   .intro { min-height: auto; display: block; padding: 48px 0 46px; }
   .intro h1 { font-size: clamp(76px, 25vw, 150px); line-height: 0.75; }
-  .issue-mark { top: 28px; right: 4px; left: auto; }
   .intro-copy { max-width: 610px; margin: 50px 0 0; padding: 0; }
   .dek { font-size: 19px; max-width: 520px; }
-  .work { display: block; min-height: auto; padding-bottom: 64px; }
+  .desktop-layout { display: block; min-height: auto; padding: 0 0 64px; }
+  .left-column { display: block; }
   .project-index button { grid-template-columns: 28px 1fr auto; padding: 18px 0 13px; cursor: default; }
   .project-index button::before { display: none; }
   .project-index li.active button, .project-index button:hover { color: var(--ink); }
