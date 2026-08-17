@@ -25,6 +25,14 @@ const MAX_TEXTURE_GAIN = 0.05;
 /** Peak level of the lock. The one number to nudge if it sits wrong against
  *  the travel texture. */
 const LOCK_GAIN = 0.4;
+/**
+ * How far ahead of the audio clock to schedule the lock. `currentTime` is the
+ * start of the block already being rendered, so anything scheduled at it is
+ * partly in the past by the time the audio thread gets there. The 70ms body
+ * loses a few inaudible milliseconds that way, but the 6ms contact transient
+ * loses its entire envelope — which is why the click was sometimes only a thud.
+ */
+const LOCK_LEAD = 0.012;
 
 export function useTransportAudio(enabled: boolean): Transport {
     const contextRef = useRef<AudioContext | null>(null);
@@ -124,7 +132,7 @@ export function useTransportAudio(enabled: boolean): Transport {
     const lock = useCallback(() => {
         if (!enabledRef.current) return;
         const context = getContext();
-        const now = context.currentTime;
+        const now = context.currentTime + LOCK_LEAD;
         const buffer = getClickNoise(context);
 
         // One wobble and one level for the whole click. Varying each transient
