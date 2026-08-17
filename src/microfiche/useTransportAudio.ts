@@ -127,9 +127,12 @@ export function useTransportAudio(enabled: boolean): Transport {
         const now = context.currentTime;
         const buffer = getClickNoise(context);
 
-        /** Nudge a value by up to ±spread, so no two locks are identical. */
-        const vary = (value: number, spread: number) =>
-            value * (1 + (Math.random() * 2 - 1) * spread);
+        // One wobble and one level for the whole click. Varying each transient
+        // separately swung the balance between contact and body, so the same
+        // sound came out as a click on one press and a thud on the next.
+        const spread = (amount: number) => 1 + (Math.random() * 2 - 1) * amount;
+        const wobble = spread(0.025);
+        const level = spread(0.05);
 
         /** One filtered noise transient with an exponential decay. */
         const hit = (
@@ -144,10 +147,10 @@ export function useTransportAudio(enabled: boolean): Transport {
             source.buffer = buffer;
             const filter = context.createBiquadFilter();
             filter.type = type;
-            filter.frequency.value = vary(frequency, 0.06);
+            filter.frequency.value = frequency * wobble;
             filter.Q.value = q;
             const gain = context.createGain();
-            gain.gain.setValueAtTime(vary(peak, 0.12) * LOCK_GAIN, at);
+            gain.gain.setValueAtTime(peak * level * LOCK_GAIN, at);
             gain.gain.exponentialRampToValueAtTime(0.0001, at + decay);
             source.connect(filter).connect(gain).connect(context.destination);
             source.start(at);
@@ -156,7 +159,7 @@ export function useTransportAudio(enabled: boolean): Transport {
 
         hit(now, "highpass", 1900, 0.6, 0.2, 0.006); // contact
         hit(now, "lowpass", 240, 8, 1, 0.07); // body
-        hit(now + vary(0.026, 0.15), "lowpass", 190, 6, 0.5, 0.055); // seating
+        hit(now + 0.026 * spread(0.08), "lowpass", 190, 6, 0.5, 0.055); // seating
     }, [getClickNoise, getContext]);
 
     // Turning sound off mid-travel should silence the texture immediately.

@@ -219,7 +219,12 @@ export default function MicroficheViewer({
                 return;
             }
 
-            if (!options.silent) transport.start();
+            // The lock answers the press, not the arrival, so it fires now
+            // rather than when the lens gets there.
+            if (!options.silent) {
+                transport.lock();
+                transport.start();
+            }
             let previous = from;
 
             tween(
@@ -243,10 +248,7 @@ export default function MicroficheViewer({
                 },
                 () => {
                     settleAt(target);
-                    if (!options.silent) {
-                        transport.stop();
-                        transport.lock();
-                    }
+                    if (!options.silent) transport.stop();
                 },
             );
         },
