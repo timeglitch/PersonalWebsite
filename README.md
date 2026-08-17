@@ -68,6 +68,14 @@ To add a new `plate` variant: add the name to `PlateVariant`, add a `case` to
 `.fiche-<style>` if it needs its own treatment. Several variants share one
 style, so a plain ruled list can reuse `style="record"` and need no CSS.
 
+## Next
+
+- **Mobile.** The viewer is desktop-only; below 900px the sheet is hidden and
+  the projects fall back to a stacked list.
+- **GitHub, LinkedIn and résumé as tiles** on the sheet, rather than only as
+  links in the intro.
+- **New projects and photos.**
+
 ## Don't change
 
 `npm run capture` steps the parking chart back to the last month its collector
