@@ -15,7 +15,10 @@ import "./microfiche.css";
 
 type Props = {
     activeIndex: number;
+    /** Reports where the lens has come to rest. Does not move it. */
     onActiveChange: (index: number) => void;
+    /** Bumped by the index on every click, including a click on the active entry. */
+    focusToken: number;
     hoveredIndex: number | null;
     soundOn: boolean;
 };
@@ -39,6 +42,7 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
 export default function MicroficheViewer({
     activeIndex,
     onActiveChange,
+    focusToken,
     hoveredIndex,
     soundOn,
 }: Props) {
@@ -228,13 +232,53 @@ export default function MicroficheViewer({
         [applyMotion, applyView, cancelFrame, clampView, clearMotion, transport, zoomForCluster],
     );
 
-    /** Settle on whichever cluster the lens is closest to and tell the left column. */
-    const snapToNearest = useCallback(() => {
-        const { x, y } = viewRef.current;
-        const index = nearestClusterIndex(x, y);
-        travelTo(index);
+    /**
+     * Where a drag or scrub comes to rest: exactly where it was left. Nothing
+     * pulls the lens towards a cell. The only movement here is the rubber-band
+     * overshoot springing back inside the sheet, which is a boundary, not an
+     * alignment. The left column still follows along.
+     */
+    const comeToRest = useCallback(() => {
+        cancelFrame();
+        const view = viewRef.current;
+
+        // Tell the list where we are, without letting that trigger a travel.
+        const index = nearestClusterIndex(view.x, view.y);
+        settledRef.current = index;
         if (index !== activeIndex) onActiveChange(index);
-    }, [activeIndex, onActiveChange, travelTo]);
+
+        const target = clampView(view, 0);
+        const travel = Math.hypot(target.x - view.x, target.y - view.y);
+
+        if (travel < 0.01 || reducedMotionRef.current) {
+            viewRef.current = target;
+            applyView();
+            clearMotion();
+            return;
+        }
+
+        const from = { ...view };
+        const start = performance.now();
+        const duration = 300;
+        const step = (now: number) => {
+            const t = clamp((now - start) / duration, 0, 1);
+            const eased = 1 - (1 - t) ** 3;
+            viewRef.current = {
+                x: from.x + (target.x - from.x) * eased,
+                y: from.y + (target.y - from.y) * eased,
+                zoom: from.zoom,
+            };
+            applyView();
+            if (t < 1) {
+                frameRef.current = requestAnimationFrame(step);
+                return;
+            }
+            frameRef.current = null;
+            clearMotion();
+            transport.lock();
+        };
+        frameRef.current = requestAnimationFrame(step);
+    }, [activeIndex, applyView, cancelFrame, clampView, clearMotion, onActiveChange, transport]);
 
     // Measure the lens and keep the current cluster framed through resizes.
     useLayoutEffect(() => {
@@ -264,11 +308,27 @@ export default function MicroficheViewer({
         return () => observer.disconnect();
     }, [applyView, clampView, zoomForCluster]);
 
-    // Travel when the active project changes from outside (the left column).
+    /**
+     * Re-frame whenever the index is clicked. This is driven by a token rather
+     * than by activeIndex changing, because after a drag the lens can be far
+     * from the project the list already considers active — clicking that same
+     * entry has to bring it back, and a value that never changes cannot say so.
+     */
+    const travelRef = useRef(travelTo);
+    travelRef.current = travelTo;
+    const activeRef = useRef(activeIndex);
+    activeRef.current = activeIndex;
+    const firstFocusRef = useRef(true);
+
     useEffect(() => {
-        if (!ready || activeIndex === settledRef.current) return;
-        travelTo(activeIndex);
-    }, [activeIndex, ready, travelTo]);
+        if (!ready) return;
+        // The first measurement already framed the opening project.
+        if (firstFocusRef.current) {
+            firstFocusRef.current = false;
+            return;
+        }
+        travelRef.current(activeRef.current);
+    }, [focusToken, ready]);
 
     useEffect(() => cancelFrame, [cancelFrame]);
 
@@ -307,6 +367,9 @@ export default function MicroficheViewer({
         drag.lastTime = performance.now();
         drag.vx = drag.vy = 0;
         pressedRef.current = event.target as HTMLElement;
+        // Stop the browser starting a text selection before the drag threshold
+        // is crossed. Links keep their default so they still activate.
+        if (!(event.target as HTMLElement).closest("a")) event.preventDefault();
     };
 
     const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -357,12 +420,16 @@ export default function MicroficheViewer({
     const runInertia = useCallback(() => {
         const drag = dragRef.current;
         const { zoom } = viewRef.current;
-        let vx = -drag.vx / (SHEET.unit * zoom);
-        let vy = -drag.vy / (SHEET.unit * zoom);
+        // Velocity is only sampled on pointermove, so holding still before
+        // releasing would otherwise fling at the last speed recorded. Fade it
+        // out by how long the pointer sat idle.
+        const freshness = clamp(1 - (performance.now() - drag.lastTime) / 140, 0, 1);
+        let vx = (-drag.vx * freshness) / (SHEET.unit * zoom);
+        let vy = (-drag.vy * freshness) / (SHEET.unit * zoom);
 
         if (reducedMotionRef.current || Math.hypot(vx, vy) < 0.0006) {
             transport.stop();
-            snapToNearest();
+            comeToRest();
             return;
         }
 
@@ -396,11 +463,11 @@ export default function MicroficheViewer({
             frameRef.current = null;
             clearMotion();
             transport.stop();
-            snapToNearest();
+            comeToRest();
         };
 
         frameRef.current = requestAnimationFrame(step);
-    }, [applyMotion, applyView, clampView, clearMotion, snapToNearest, transport]);
+    }, [applyMotion, applyView, clampView, clearMotion, comeToRest, transport]);
 
     const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
         const drag = dragRef.current;
@@ -447,7 +514,9 @@ export default function MicroficheViewer({
         const index = cell.project
             ? projects.findIndex((project) => project.id === cell.project)
             : nearestClusterIndex(cell.x + cell.w / 2, cell.y + cell.h / 2);
-        if (index >= 0 && index !== activeIndex) onActiveChange(index);
+        if (index < 0) return;
+        if (index !== activeIndex) onActiveChange(index);
+        travelTo(index);
     };
 
     // Wheel and trackpad scrub across nearby cells, then settle.
@@ -477,7 +546,7 @@ export default function MicroficheViewer({
             settle = window.setTimeout(() => {
                 clearMotion();
                 transport.stop();
-                snapToNearest();
+                comeToRest();
             }, 220);
         };
 
@@ -486,13 +555,14 @@ export default function MicroficheViewer({
             stage.removeEventListener("wheel", onWheel);
             window.clearTimeout(settle);
         };
-    }, [applyMotion, applyView, cancelFrame, clampView, clearMotion, snapToNearest, transport]);
+    }, [applyMotion, applyView, cancelFrame, clampView, clearMotion, comeToRest, transport]);
 
     const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
         const step = (delta: number) => {
             event.preventDefault();
             const next = (activeIndex + delta + projects.length) % projects.length;
             onActiveChange(next);
+            travelTo(next);
         };
 
         if (event.key === "ArrowRight" || event.key === "ArrowDown") step(1);

@@ -37,34 +37,34 @@ export const projects: Project[] = [
     {
         id: "parking",
         name: "SJSU Parking Tracker",
-        year: "2024",
-        dates: "2024–2026",
+        year: "2025",
+        dates: "2025–2026",
         role: "React · Python",
         description:
             "A tracker for parking availability at San Jose State University, built with React and a Python backend.",
-        archive: "FZ·PRK·2024",
+        archive: "FZ·PRK·2025",
         url: "https://timeglitch.github.io/SJSUParkingMonitor/",
     },
     {
         id: "satellite",
         name: "Satellite Tracker",
-        year: "2024",
-        dates: "2024",
+        year: "2025",
+        dates: "2025",
         role: "React · Three.js · Data",
         description:
             "Visualize interpolated satellite data overlaid on EONET wildfire locations, built with React, Three.js and a serverless proxy.",
-        archive: "FZ·SAT·2024",
+        archive: "FZ·SAT·2025",
         url: "https://windborne-nu.vercel.app/",
     },
     {
         id: "balalaika",
         name: "SF Balalaika Ensemble",
-        year: "2023",
-        dates: "2023–",
+        year: "2026",
+        dates: "2026–",
         role: "HTML · CSS · JavaScript",
         description:
             "A website for the San Francisco Balalaika Ensemble, a local folk music group I play in. Built in raw HTML/CSS/JavaScript, to make it as easy as possible to update and host.",
-        archive: "FZ·BAL·2023",
+        archive: "FZ·BAL·2026",
         url: "https://sfbalalaika.org",
     },
     {

@@ -18,6 +18,10 @@
   background: var(--fiche-film);
   cursor: grab;
   touch-action: none;
+  /* The sheet is dragged, not read: without this a drag sweeps a text
+     selection across the cells and on into the rest of the page. */
+  user-select: none;
+  -webkit-user-select: none;
   opacity: 0;
   transition: opacity 260ms ease-out;
 }

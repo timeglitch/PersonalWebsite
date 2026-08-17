@@ -5,6 +5,12 @@ import { projects } from "./projects";
 
 function App() {
     const [activeIndex, setActiveIndex] = useState(0);
+    /**
+     * Bumped on every index click. A drag leaves the lens away from the project
+     * the list already calls active, so clicking that same entry must re-frame
+     * it — which a state value that does not change cannot express.
+     */
+    const [focusToken, setFocusToken] = useState(0);
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [soundOn, setSoundOn] = useState(() =>
         window.matchMedia("(min-width: 901px)").matches,
@@ -68,7 +74,10 @@ function App() {
                                     onMouseEnter={() => setHoveredIndex(index)}
                                     onFocus={() => setHoveredIndex(index)}
                                     onBlur={() => setHoveredIndex(null)}
-                                    onClick={() => setActiveIndex(index)}
+                                    onClick={() => {
+                                        setActiveIndex(index);
+                                        setFocusToken((token) => token + 1);
+                                    }}
                                     aria-label={`Show ${project.name}`}
                                     aria-current={index === activeIndex}
                                 >
@@ -102,6 +111,7 @@ function App() {
                     <MicroficheViewer
                         activeIndex={activeIndex}
                         onActiveChange={setActiveIndex}
+                        focusToken={focusToken}
                         hoveredIndex={hoveredIndex}
                         soundOn={soundOn}
                     />

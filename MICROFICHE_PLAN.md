@@ -15,6 +15,13 @@ Implementation notes:
   renders wider than ~660 CSS px and every capture passes through a duotone.
 - The parking collector stopped in April 2026, so its capture steps the chart
   back to the last populated month; otherwise it photographs an empty grid.
+- Dragging no longer snaps. The plan called for releasing the sheet to centre on
+  the nearest project cluster; in practice that fought the user, so the lens now
+  rests exactly where it is dropped and keeps its zoom. A weak magnetic nudge
+  toward the nearest cell was tried in between and removed for the same reason.
+  Only the rubber-band overshoot springs back, since that is a boundary rather
+  than an alignment. The left column still reports the nearest cluster, and
+  clicking the index is what re-frames a project.
 - There is no caption strip under the viewer. The sheet prints the name, dates
   and description itself, so the only caption left is a visually-hidden one for
   screen readers.

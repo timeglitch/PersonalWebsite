@@ -493,7 +493,7 @@ export const cells: Cell[] = [
         kind: "artifact",
         variant: "program",
         title: "Performance notice",
-        lines: ["2026 San Francisco Slavic Festival", "31 January 2026", "afternoon"],
+        lines: ["2026 San Francisco Slavic Festival", "Russian Center", "31 January 2026 · afternoon"],
         x: 14.6, y: 16.4, w: 2.6, h: 1.7, tilt: 0.6,
     },
     {
