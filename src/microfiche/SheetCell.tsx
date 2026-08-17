@@ -3,7 +3,7 @@
  * treatment; everything else is drawn natively so it stays sharp at any zoom.
  */
 import type { Project } from "../projects";
-import { coordinateAt, type Cell } from "./sheetData";
+import { coordinateAt, SPANISH_VOWELS, type Cell } from "./sheetData";
 
 type Props = {
     cell: Cell;
@@ -18,28 +18,33 @@ function Artifact({ cell }: { cell: Extract<Cell, { kind: "artifact" }> }) {
     const { variant, title, lines = [] } = cell;
 
     switch (variant) {
-        case "phonetic":
+        case "phonetic": {
+            // A real vowel chart: F2 runs right-to-left, F1 top-to-bottom.
+            const plot = SPANISH_VOWELS.map((vowel) => {
+                const f1 = (vowel.f1[0] + vowel.f1[1]) / 2;
+                const f2 = (vowel.f2[0] + vowel.f2[1]) / 2;
+                return {
+                    ipa: vowel.ipa,
+                    x: 10 + ((2700 - f2) * 82) / 1900,
+                    y: 8 + ((f1 - 250) * 40) / 650,
+                };
+            });
             return (
                 <div className="fiche-body fiche-phonetic">
                     <p className="fiche-title">{title}</p>
                     <svg viewBox="0 0 100 58" preserveAspectRatio="none" aria-hidden="true">
-                        <polygon points="10,6 90,6 74,50 26,34" />
-                        {[
-                            { x: 12, y: 9, label: "i" },
-                            { x: 24, y: 24, label: "e" },
-                            { x: 46, y: 40, label: "a" },
-                            { x: 74, y: 25, label: "o" },
-                            { x: 88, y: 9, label: "u" },
-                        ].map((point) => (
-                            <g key={point.label}>
+                        <polygon points={plot.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")} />
+                        {plot.map((point) => (
+                            <g key={point.ipa}>
                                 <circle cx={point.x} cy={point.y} r="2.4" />
-                                <text x={point.x + 4} y={point.y + 3}>{point.label}</text>
+                                <text x={point.x + 4} y={point.y + 3}>{point.ipa}</text>
                             </g>
                         ))}
                     </svg>
-                    <p className="fiche-foot">F2 ← → · F1 ↑ ↓</p>
+                    <p className="fiche-foot">{lines.join(" · ")}</p>
                 </div>
             );
+        }
 
         case "waveform":
             return (
@@ -132,14 +137,12 @@ function Artifact({ cell }: { cell: Extract<Cell, { kind: "artifact" }> }) {
             );
 
         case "program":
+            // A performance notice: the engagement set, then when.
             return (
                 <div className="fiche-body fiche-program">
                     <p className="fiche-title">{title}</p>
-                    <ol>
-                        {lines.map((line) => (
-                            <li key={line}>{line}</li>
-                        ))}
-                    </ol>
+                    <strong>{lines[0]}</strong>
+                    <p className="fiche-foot">{lines.slice(1).join(" · ")}</p>
                 </div>
             );
 

@@ -253,8 +253,7 @@
 }
 
 /* Records: telemetry, reference cards, repertoire, development log. */
-.fiche-record ul,
-.fiche-program ol {
+.fiche-record ul {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -270,19 +269,13 @@
   padding-bottom: 2px;
   border-bottom: 1px dotted var(--fiche-rule);
 }
-.fiche-program ol { counter-reset: piece; }
-.fiche-program li {
+.fiche-program { justify-content: space-between; }
+.fiche-program strong {
   font-family: "Playfair Display", Georgia, serif;
   font-style: italic;
-  font-size: 11px;
-  counter-increment: piece;
-}
-.fiche-program li::before {
-  content: counter(piece, upper-roman) ". ";
-  font-family: "DM Mono", monospace;
-  font-style: normal;
-  font-size: 7px;
-  color: var(--fiche-ink-soft);
+  font-size: 14px;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
 }
 
 /* Occupancy readout. */

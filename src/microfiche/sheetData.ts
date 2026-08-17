@@ -70,6 +70,21 @@ export type Cell = CellBase &
     );
 
 const CAPTURES = "/microfiche/captures";
+/** Hand-placed images. Kept apart from CAPTURES, which `npm run capture` wipes. */
+const ARCHIVE = "/microfiche/archive";
+
+/**
+ * Spanish vowel formant ranges in Hz, lifted from Vocalize's own
+ * src/VowelStimuli.json, which cites Martínez Celdrán (1995). The vowel chart
+ * cell plots the midpoints, so the plate is a real chart rather than a prop.
+ */
+export const SPANISH_VOWELS = [
+    { ipa: "i", f1: [258, 448], f2: [2151, 2687] },
+    { ipa: "e", f1: [380, 691], f2: [1892, 2462] },
+    { ipa: "a", f1: [605, 1045], f2: [1399, 1780] },
+    { ipa: "o", f1: [395, 725], f2: [871, 1460] },
+    { ipa: "u", f1: [285, 474], f2: [570, 1227] },
+] as const;
 
 export const cells: Cell[] = [
     // ── Vocalize ── top-left ────────────────────────────────────────────────
@@ -102,8 +117,8 @@ export const cells: Cell[] = [
         kind: "artifact",
         project: "vocalize",
         variant: "phonetic",
-        title: "Vowel chart · F1/F2",
-        lines: ["i", "e", "a", "o", "u"],
+        title: "Spanish vowels · F1/F2 (Hz)",
+        lines: ["Martínez Celdrán 1995", "n = 5"],
         x: 9, y: 3.95, w: 3, h: 1.9,
     },
     {
@@ -152,12 +167,12 @@ export const cells: Cell[] = [
         kind: "artifact",
         project: "satellite",
         variant: "telemetry",
-        title: "Telemetry · T−3h",
+        title: "EONET · wildfires",
         lines: [
-            "SONDE 0412   37.77 N  122.41 W   18.9 km",
-            "SONDE 0577   34.05 N  118.24 W   19.4 km",
-            "EONET 41133  FIRE · CALIFORNIA",
-            "EONET 41151  FIRE · OREGON",
+            "EONET_22614  PLAINS · SAN LUIS OBISPO CA",
+            "EONET_22607  SHEEP PEN · LAS ANIMAS CO",
+            "EONET_22619  RANCHER · OGLALA LAKOTA SD",
+            "EONET_22610  DOS PISTOLAS · BROOKS TX",
         ],
         x: 30.4, y: 3.95, w: 3, h: 1.9,
     },
@@ -199,8 +214,8 @@ export const cells: Cell[] = [
         kind: "artifact",
         project: "parking",
         variant: "parking-data",
-        title: "Occupancy · sample",
-        lines: ["SOUTH 92%", "WEST 92%", "NORTH 81%", "SOUTH CAMPUS 9%"],
+        title: "2025·09·03 13:00 · full",
+        lines: ["SOUTH 100%", "WEST 100%", "NORTH 100%", "SOUTH CAMPUS 53%"],
         x: 20.5, y: 11.35, w: 2.9, h: 1.9,
     },
     {
@@ -243,11 +258,11 @@ export const cells: Cell[] = [
         variant: "repertoire",
         title: "Instrumentation",
         lines: [
-            "BALALAIKA · prima to kontrabass",
-            "DOMRA · small to bass",
-            "ZHALEIKA · BRELKA · SVIREL",
-            "ROZHOK · SOPILKA",
-            "BAYAN · VIOLIN",
+            "BALALAIKA · piccolo to contrabass",
+            "DOMRA · three or four strings",
+            "BAYAN · chromatic button accordion",
+            "ZHALEIKA · single reed",
+            "SOPILKA · VIOLIN",
         ],
         x: 9, y: 15.35, w: 3, h: 1.9,
     },
@@ -300,10 +315,34 @@ export const cells: Cell[] = [
         framed: true,
         variant: "inventory",
         title: "Equipment record",
-        lines: ["ASSET 04417", "CLASS · COMPUTE NODE", "STATUS · IN SERVICE", "LOC · CHTC"],
-        x: 28, y: 14.9, w: 3.2, h: 0.95,
+        lines: [
+            "MODEL · POWEREDGE R740XD",
+            "MFR · DELL EMC",
+            "SERVICE TAG · 7J2QX53",
+            "ASSET · 04417",
+            "STATUS · IN SERVICE",
+        ],
+        x: 28, y: 14.9, w: 3.2, h: 1.15,
     },
-    { id: "ast-cover", kind: "cover", project: "assets", x: 23.6, y: 17.6, w: 3.4, h: 1.8, tilt: -0.5 },
+    {
+        // The software is withheld, so the machine room stands in for it.
+        id: "ast-machine-room",
+        kind: "capture",
+        project: "assets",
+        framed: true,
+        src: `${ARCHIVE}/chtc-machine-room.jpg`,
+        label: "chtc · machine room",
+        x: 28, y: 16.25, w: 3.2, h: 1.6,
+    },
+    {
+        id: "ast-building",
+        kind: "capture",
+        project: "assets",
+        src: `${ARCHIVE}/uw-computer-sciences.jpg`,
+        label: "computer sciences · 1210 w dayton",
+        x: 23.6, y: 17.6, w: 3.4, h: 1.7, tilt: 0.4,
+    },
+    { id: "ast-cover", kind: "cover", project: "assets", x: 27.2, y: 18.05, w: 2.9, h: 1.5, tilt: -0.5 },
 
     // ── Transitional artifacts ──────────────────────────────────────────────
     // Top band, between Vocalize and Satellite.
@@ -319,8 +358,12 @@ export const cells: Cell[] = [
         id: "t-code",
         kind: "artifact",
         variant: "code",
-        title: "audio/formants.ts",
-        lines: ["const [f1, f2] = peaks(spectrum)", "return chart.project(f1, f2)"],
+        title: "src/audioUtils.js",
+        lines: [
+            "const res = await fetch(url)",
+            "return ctx.decodeAudioData(",
+            "  await res.arrayBuffer())",
+        ],
         x: 17.2, y: 1.9, w: 2.8, h: 1.7, tilt: 0.6,
     },
     {
@@ -370,21 +413,20 @@ export const cells: Cell[] = [
         id: "t-coordinates",
         kind: "artifact",
         variant: "coordinates",
-        title: "Index",
-        lines: ["37.3352 N", "121.8811 W", "ALT 26 M"],
+        title: "EONET_22614",
+        lines: ["35.4166 N", "120.0015 W"],
         x: 21, y: 5.9, w: 2.2, h: 1.1,
     },
     {
         id: "t-timestamp",
         kind: "artifact",
         variant: "timestamp",
-        title: "Development log",
+        title: "Repositories · created",
         lines: [
-            "2023·07  asset system gui",
-            "2023·11  sfbalalaika.org",
-            "2024·09  satellite tracker",
-            "2024·12  parking tracker",
-            "2025·05  vocalize",
+            "2025·06  vocalizeweb",
+            "2025·09  windborne",
+            "2025·09  sjsuparkingmonitor",
+            "2026·01  sfbalalaika.org",
         ],
         x: 18.2, y: 7.2, w: 3.2, h: 1.7,
     },
@@ -425,8 +467,8 @@ export const cells: Cell[] = [
         id: "t-orbit",
         kind: "artifact",
         variant: "telemetry",
-        title: "Pass · descending",
-        lines: ["INC 51.6°", "PERIOD 92.7 MIN", "PROXY · EDGE"],
+        title: "Balloon constellation",
+        lines: ["1000 SONDES / HOUR", "ALT 2.0 – 22.0 KM", "24 H OF HISTORY"],
         x: 24, y: 8.6, w: 2.8, h: 1.5, tilt: 0.6,
     },
     {
@@ -450,8 +492,8 @@ export const cells: Cell[] = [
         id: "t-program",
         kind: "artifact",
         variant: "program",
-        title: "Programme",
-        lines: ["Korobushka", "Dark Eyes", "Kalinka"],
+        title: "Performance notice",
+        lines: ["2026 San Francisco Slavic Festival", "31 January 2026", "afternoon"],
         x: 14.6, y: 16.4, w: 2.6, h: 1.7, tilt: 0.6,
     },
     {
