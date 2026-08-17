@@ -79,14 +79,25 @@ export default function MicroficheViewer({
         return () => query.removeEventListener("change", sync);
     }, []);
 
-    /** Zoom that makes a cluster's framed block fill most of the lens. */
-    const zoomForCluster = useCallback((index: number) => {
+    /**
+     * One magnification for the whole sheet, so travelling is a pure pan and
+     * the lens never racks in or out between projects.
+     *
+     * It is the median of what each cluster's framed block would want, rather
+     * than a fit for all of them: most clusters share a shape, and taking the
+     * median lets that shape set the magnification instead of letting one
+     * differently-shaped cluster pull every other project further away.
+     */
+    const sheetZoom = useCallback(() => {
         const { width, height } = sizeRef.current;
         if (!width || !height) return 0.5;
-        const { frame } = clusters[index];
-        const fitX = width / (frame.w * SHEET.unit);
-        const fitY = height / (frame.h * SHEET.unit);
-        return clamp(Math.min(fitX, fitY) * FRAME_FILL, MIN_ZOOM, MAX_ZOOM);
+        const wanted = clusters
+            .map(({ frame }) =>
+                Math.min(width / (frame.w * SHEET.unit), height / (frame.h * SHEET.unit)),
+            )
+            .sort((a, b) => a - b);
+        const median = wanted[Math.floor(wanted.length / 2)];
+        return clamp(median * FRAME_FILL, MIN_ZOOM, MAX_ZOOM);
     }, []);
 
     /** Keep the lens over the sheet; `softness` allows rubber-banding while dragging. */
@@ -200,7 +211,7 @@ export default function MicroficheViewer({
             const target = clampView({
                 x: clusters[index].focus.x,
                 y: clusters[index].focus.y,
-                zoom: zoomForCluster(index),
+                zoom: sheetZoom(),
             });
             const distance = Math.hypot(target.x - from.x, target.y - from.y);
             settledRef.current = index;
@@ -252,7 +263,7 @@ export default function MicroficheViewer({
                 },
             );
         },
-        [applyMotion, applyView, cancelFrame, clampView, settleAt, transport, tween, zoomForCluster],
+        [applyMotion, applyView, cancelFrame, clampView, settleAt, transport, tween, sheetZoom],
     );
 
     /**
@@ -304,19 +315,19 @@ export default function MicroficheViewer({
                 viewRef.current = clampView({
                     x: clusters[index].focus.x,
                     y: clusters[index].focus.y,
-                    zoom: zoomForCluster(index),
+                    zoom: sheetZoom(),
                 });
                 applyView();
                 setReady(true);
             } else if (frameRef.current === null) {
-                viewRef.current = clampView({ ...viewRef.current, zoom: zoomForCluster(settledRef.current) });
+                viewRef.current = clampView({ ...viewRef.current, zoom: sheetZoom() });
                 applyView();
             }
         });
 
         observer.observe(stage);
         return () => observer.disconnect();
-    }, [applyView, clampView, zoomForCluster]);
+    }, [applyView, clampView, sheetZoom]);
 
     /**
      * Re-frame whenever the index is clicked. This is driven by a token rather
@@ -651,7 +662,16 @@ export default function MicroficheViewer({
             </svg>
 
             <div className="fiche-film" ref={filmRef}>
-                <div className="fiche-sheet" ref={sheetRef}>
+                {/* Sheet extents come from SHEET so the stylesheet never has to
+                    be kept in step with it by hand. */}
+                <div
+                    className="fiche-sheet"
+                    ref={sheetRef}
+                    style={{
+                        ["--sheet-w" as string]: SHEET.width,
+                        ["--sheet-h" as string]: SHEET.height,
+                    }}
+                >
                     <div className="fiche-grid" aria-hidden="true" />
                     {cells.map((cell) => (
                         <SheetCell

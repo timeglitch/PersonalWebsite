@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "capture": "node scripts/capture-sites.mjs",
     "preview": "vite preview",
-    "check": "tsx scripts/check-sheet.ts"
+    "check": "tsx scripts/check-sheet.ts",
+    "film-ground": "node scripts/make-film-ground.mjs"
   },
   "dependencies": {
     "react": "^19.1.1",

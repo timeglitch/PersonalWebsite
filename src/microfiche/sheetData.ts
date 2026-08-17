@@ -9,7 +9,7 @@
 import { projects, type Project, type ProjectId } from "../projects";
 
 /** Sheet extents in grid units, and the pixel size of one unit at zoom 1. */
-export const SHEET = { width: 34, height: 20, unit: 100 } as const;
+export const SHEET = { width: 33, height: 30.7, unit: 100 } as const;
 
 type CellBase = {
     id: string;
@@ -34,7 +34,6 @@ export type PlateVariant =
     | "phonetic"
     | "code"
     | "parking-data"
-    | "map"
     | "telemetry"
     | "coordinates"
     | "repertoire"
@@ -93,7 +92,10 @@ export const SPANISH_VOWELS = [
 
 export const cells: Cell[] = [
     // ── Vocalize ── top-left ────────────────────────────────────────────────
-    // Standard composition: capture with a wide caption clipping butted under it.
+    // Every cluster centres on its hero: the primary capture sits in the middle
+    // with the rest of the material printed above, below and to either side of
+    // it, so the framed block reads as the middle of the group rather than its
+    // top-left corner.
     {
         id: "voc-landing",
         kind: "capture",
@@ -102,7 +104,7 @@ export const cells: Cell[] = [
         framed: true,
         src: `${CAPTURES}/vocalize-landing.jpg`,
         label: "vocalize · landing",
-        x: 2, y: 1.8, w: 6.4, h: 4,
+        x: 5.4, y: 3.9, w: 6.4, h: 4,
     },
     {
         id: "voc-clip",
@@ -114,9 +116,9 @@ export const cells: Cell[] = [
             "A browser listens to a learner speaking Spanish and draws the shape of the sound back at them in real time.",
             "Formant tracking turns the first and second resonances of the voice into a moving point on a vowel chart.",
         ],
-        x: 2, y: 5.95, w: 6.4, h: 0.95,
+        x: 5.4, y: 8.1, w: 6.4, h: 0.95,
     },
-    { id: "voc-cover", kind: "cover", project: "vocalize", x: 9, y: 1.8, w: 3, h: 1.9, tilt: -0.5 },
+    { id: "voc-cover", kind: "cover", project: "vocalize", x: 9.6, y: 1.8, w: 3, h: 1.9, tilt: -0.5 },
     {
         id: "voc-formant",
         kind: "capture",
@@ -124,7 +126,7 @@ export const cells: Cell[] = [
         fit: "contain",
         src: `${ARCHIVE}/formant-spectra.jpg`,
         label: "formant envelopes · f0 100–300 hz",
-        x: 9, y: 3.9, w: 3, h: 2.5,
+        x: 2.2, y: 3.9, w: 3, h: 2.5,
     },
     {
         // The source–filter model formant tracking rests on.
@@ -134,7 +136,7 @@ export const cells: Cell[] = [
         fit: "contain",
         src: `${ARCHIVE}/lpc-source-filter.jpg`,
         label: "lpc · source–filter model",
-        x: 2, y: 7.05, w: 4.4, h: 1.75,
+        x: 5, y: 1.95, w: 4.4, h: 1.75,
     },
     {
         id: "voc-phonetic",
@@ -143,7 +145,7 @@ export const cells: Cell[] = [
         variant: "phonetic",
         title: "Spanish vowels · F1/F2 (Hz)",
         lines: ["Martínez Celdrán 1995", "n = 5"],
-        x: 2, y: 8.95, w: 3.4, h: 2,
+        x: 1.8, y: 6.6, w: 3.4, h: 2,
     },
     {
         // The app mid-use: a vowel selected, with the F1 and F2 bands marked
@@ -154,7 +156,7 @@ export const cells: Cell[] = [
         project: "vocalize",
         src: `${ARCHIVE}/vocalize-formant-ui.jpg`,
         label: "vocalize · formant tracking",
-        x: 9, y: 6.6, w: 3, h: 2, tilt: 0.5,
+        x: 12, y: 3.9, w: 3, h: 2, tilt: 0.5,
     },
     {
         id: "voc-mobile",
@@ -162,7 +164,7 @@ export const cells: Cell[] = [
         project: "vocalize",
         src: `${CAPTURES}/vocalize-mobile.jpg`,
         label: "vocalize · handheld",
-        x: 12.4, y: 1.8, w: 1.5, h: 2.7,
+        x: 12, y: 6.1, w: 1.5, h: 2.7,
     },
 
     // ── Satellite ── top-right ──────────────────────────────────────────────
@@ -174,7 +176,7 @@ export const cells: Cell[] = [
         framed: true,
         src: `${CAPTURES}/satellite-landing.jpg`,
         label: "windborne · viewer",
-        x: 23.4, y: 1.8, w: 6.4, h: 4,
+        x: 21.6, y: 3.9, w: 6.4, h: 4,
     },
     {
         id: "sat-clip",
@@ -186,9 +188,9 @@ export const cells: Cell[] = [
             "Interpolated balloon positions are drawn against EONET wildfire reports on a single rotating globe.",
             "A serverless proxy stands between the browser and the upstream feeds so the client can stay static.",
         ],
-        x: 23.4, y: 5.95, w: 6.4, h: 0.95,
+        x: 21.6, y: 8.1, w: 6.4, h: 0.95,
     },
-    { id: "sat-cover", kind: "cover", project: "satellite", x: 30.4, y: 1.8, w: 3, h: 1.9, tilt: 0.5 },
+    { id: "sat-cover", kind: "cover", project: "satellite", x: 23.3, y: 1.8, w: 3, h: 1.9, tilt: 0.5 },
     {
         id: "sat-telemetry",
         kind: "plate",
@@ -201,7 +203,7 @@ export const cells: Cell[] = [
             "EONET_22619  RANCHER · OGLALA LAKOTA SD",
             "EONET_22610  DOS PISTOLAS · BROOKS TX",
         ],
-        x: 30.4, y: 3.95, w: 3, h: 1.9,
+        x: 18.4, y: 4.95, w: 3, h: 1.9,
     },
     {
         id: "sat-detail",
@@ -209,7 +211,7 @@ export const cells: Cell[] = [
         project: "satellite",
         src: `${CAPTURES}/satellite-detail.jpg`,
         label: "windborne · globe",
-        x: 30.4, y: 6.05, w: 3, h: 1.9, tilt: -0.6,
+        x: 28.2, y: 4.95, w: 3, h: 1.9, tilt: -0.6,
     },
 
     // ── Parking ── centre ───────────────────────────────────────────────────
@@ -221,7 +223,7 @@ export const cells: Cell[] = [
         framed: true,
         src: `${CAPTURES}/parking-landing.jpg`,
         label: "sjsu parking · history",
-        x: 13.6, y: 9.2, w: 6.4, h: 4,
+        x: 13.5, y: 13.75, w: 6.4, h: 4,
     },
     {
         id: "prk-clip",
@@ -233,9 +235,20 @@ export const cells: Cell[] = [
             "A Python collector polls the campus parking status on a fixed interval and keeps the readings.",
             "The front end plots four garages against time so a driver can see the shape of a normal Tuesday.",
         ],
-        x: 13.6, y: 13.35, w: 6.4, h: 0.95,
+        x: 13.5, y: 17.95, w: 6.4, h: 0.95,
     },
-    { id: "prk-cover", kind: "cover", project: "parking", x: 20.5, y: 9.2, w: 2.9, h: 1.9, tilt: -0.4 },
+    { id: "prk-cover", kind: "cover", project: "parking", x: 15.25, y: 11.65, w: 2.9, h: 1.9, tilt: -0.4 },
+    {
+        // The subject of the project: the campus whose garages are being
+        // counted. Height set so the 1.68:1 map fills the image area once the
+        // caption strip is subtracted, and nothing is cropped away.
+        id: "t-map",
+        kind: "capture",
+        project: "parking",
+        src: `${ARCHIVE}/sjsu-campus-map.jpg`,
+        label: "sjsu · campus map",
+        x: 9.9, y: 14.65, w: 3.4, h: 2.18,
+    },
     {
         id: "prk-data",
         kind: "plate",
@@ -243,7 +256,7 @@ export const cells: Cell[] = [
         variant: "parking-data",
         title: "2025·09·03 13:00 · full",
         lines: ["SOUTH 100%", "WEST 100%", "NORTH 100%", "SOUTH CAMPUS 53%"],
-        x: 20.5, y: 11.35, w: 2.9, h: 1.9,
+        x: 20.1, y: 13.75, w: 2.9, h: 1.9,
     },
     {
         id: "prk-detail",
@@ -251,7 +264,7 @@ export const cells: Cell[] = [
         project: "parking",
         src: `${CAPTURES}/parking-detail.jpg`,
         label: "sjsu parking · 30 days",
-        x: 20.5, y: 13.45, w: 2.9, h: 1.9, tilt: 0.4,
+        x: 20.1, y: 15.85, w: 2.9, h: 1.9, tilt: 0.4,
     },
 
     // ── Balalaika ── bottom-left ────────────────────────────────────────────
@@ -263,7 +276,7 @@ export const cells: Cell[] = [
         framed: true,
         src: `${CAPTURES}/balalaika-landing.jpg`,
         label: "sfbalalaika.org",
-        x: 2, y: 13.2, w: 6.4, h: 4,
+        x: 5, y: 23.6, w: 6.4, h: 4,
     },
     {
         id: "bal-clip",
@@ -275,9 +288,9 @@ export const cells: Cell[] = [
             "The ensemble needed a site that any member could edit without a build step or a framework.",
             "Raw HTML, CSS and JavaScript keep the pages legible and the hosting free.",
         ],
-        x: 2, y: 17.35, w: 6.4, h: 0.95,
+        x: 5, y: 27.8, w: 6.4, h: 0.95,
     },
-    { id: "bal-cover", kind: "cover", project: "balalaika", x: 9, y: 13.2, w: 3, h: 1.9, tilt: 0.5 },
+    { id: "bal-cover", kind: "cover", project: "balalaika", x: 6.7, y: 21.5, w: 3, h: 1.9, tilt: 0.5 },
     {
         id: "bal-repertoire",
         kind: "plate",
@@ -291,7 +304,7 @@ export const cells: Cell[] = [
             "ZHALEIKA · single reed",
             "SOPILKA · VIOLIN",
         ],
-        x: 9, y: 15.35, w: 3, h: 1.9,
+        x: 1.8, y: 24.65, w: 3, h: 1.9,
     },
     {
         id: "bal-detail",
@@ -299,7 +312,7 @@ export const cells: Cell[] = [
         project: "balalaika",
         src: `${CAPTURES}/balalaika-detail.jpg`,
         label: "sfbalalaika · about",
-        x: 9, y: 17.45, w: 3, h: 1.9, tilt: 0.5,
+        x: 11.6, y: 23.6, w: 3, h: 1.9, tilt: 0.5,
     },
     {
         id: "bal-mobile",
@@ -307,12 +320,13 @@ export const cells: Cell[] = [
         project: "balalaika",
         src: `${CAPTURES}/balalaika-mobile.jpg`,
         label: "sfbalalaika · handheld",
-        x: 12.2, y: 13.2, w: 1.2, h: 2.4,
+        x: 11.6, y: 25.7, w: 1.2, h: 2.4,
     },
 
     // ── Asset System GUI ── bottom-right, restricted ────────────────────────
-    // Deliberately a different composition: a square plate with its clipping and
-    // equipment record stacked beside it, rather than a wide capture and caption.
+    // Deliberately a different composition: a square plate rather than a wide
+    // capture, with its clipping above, the equipment record and machine room
+    // below, and the building and cover card either side of it.
     {
         id: "ast-plate",
         kind: "plate",
@@ -321,7 +335,7 @@ export const cells: Cell[] = [
         variant: "restricted",
         title: "Asset System GUI",
         lines: ["Private project", "Documentation on request"],
-        x: 23.6, y: 13.2, w: 4.2, h: 4.2,
+        x: 23.4, y: 23.1, w: 3.6, h: 3.6,
     },
     {
         id: "ast-clip",
@@ -333,13 +347,12 @@ export const cells: Cell[] = [
             "Hardware records for the Center for High Throughput Computing lived in a custom database and a lot of memory.",
             "A Tkinter front end put check-in, search and history in one window for staff.",
         ],
-        x: 28, y: 13.2, w: 3.2, h: 1.2,
+        x: 23.6, y: 21.5, w: 3.2, h: 1.2,
     },
     {
         id: "ast-inventory",
         kind: "plate",
         project: "assets",
-        framed: true,
         variant: "inventory",
         title: "Equipment record",
         lines: [
@@ -349,17 +362,16 @@ export const cells: Cell[] = [
             "ASSET · 04417",
             "STATUS · IN SERVICE",
         ],
-        x: 28, y: 14.9, w: 3.2, h: 1.15,
+        x: 25.3, y: 27.3, w: 3.2, h: 1.15,
     },
     {
         // The software is withheld, so the machine room stands in for it.
         id: "ast-machine-room",
         kind: "capture",
         project: "assets",
-        framed: true,
         src: `${ARCHIVE}/chtc-machine-room.jpg`,
         label: "chtc · machine room",
-        x: 28, y: 16.25, w: 3.2, h: 1.6,
+        x: 21.9, y: 27.3, w: 3.2, h: 1.6,
     },
     {
         id: "ast-building",
@@ -367,19 +379,30 @@ export const cells: Cell[] = [
         project: "assets",
         src: `${ARCHIVE}/uw-computer-sciences.jpg`,
         label: "computer sciences · 1210 w dayton",
-        x: 23.6, y: 17.6, w: 3.4, h: 1.7, tilt: 0.4,
+        x: 27.5, y: 24.15, w: 3.4, h: 1.7, tilt: 0.4,
     },
-    { id: "ast-cover", kind: "cover", project: "assets", x: 27.2, y: 18.05, w: 2.9, h: 1.5, tilt: -0.5 },
+    { id: "ast-cover", kind: "cover", project: "assets", x: 20, y: 24.25, w: 2.9, h: 1.5, tilt: -0.5 },
 
     // ── Transitional artifacts ──────────────────────────────────────────────
-    // Top band, between Vocalize and Satellite.
+    // The clusters are tight, so the artifacts run along the routes between
+    // them: a column in the gap that separates each pair of side-by-side
+    // clusters, and a band across the sheet between each pair of rows.
+
+    // Column between Vocalize and Satellite.
     {
         id: "t-divider-ac",
         kind: "plate",
         variant: "divider",
         title: "A–C",
         lines: ["Selected work", "1 of 1"],
-        x: 14.4, y: 2, w: 2.2, h: 1.4,
+        x: 15.6, y: 2, w: 2.2, h: 1.4,
+    },
+    {
+        id: "t-testpattern",
+        kind: "plate",
+        variant: "test-pattern",
+        title: "Density",
+        x: 15.75, y: 4, w: 1.9, h: 1.9,
     },
     {
         id: "t-code",
@@ -391,21 +414,16 @@ export const cells: Cell[] = [
             "return ctx.decodeAudioData(",
             "  await res.arrayBuffer())",
         ],
-        x: 17.2, y: 1.9, w: 2.8, h: 1.7, tilt: 0.6,
+        x: 15.3, y: 6.5, w: 2.8, h: 1.7, tilt: 0.6,
     },
-    {
-        id: "t-testpattern",
-        kind: "plate",
-        variant: "test-pattern",
-        title: "Density",
-        x: 20.6, y: 2, w: 1.9, h: 1.9,
-    },
+
+    // Band between the top row and the parking cluster below it.
     {
         id: "t-voc-nav",
         kind: "capture",
         src: `${CAPTURES}/vocalize-nav.jpg`,
         label: "masthead crop",
-        x: 14.4, y: 4, w: 3, h: 1.1,
+        x: 2, y: 9.6, w: 3, h: 1.1,
     },
     {
         id: "t-stamp",
@@ -413,13 +431,13 @@ export const cells: Cell[] = [
         variant: "stamp",
         title: "Filmed",
         lines: ["FRAME COMPLETE"],
-        x: 18, y: 4.2, w: 2, h: 1.3, tilt: -1.2,
+        x: 5.6, y: 9.9, w: 2, h: 1.3, tilt: -1.2,
     },
     {
         id: "t-blank",
         kind: "plate",
         variant: "blank",
-        x: 20.8, y: 4.2, w: 2.1, h: 1.3,
+        x: 8.2, y: 9.5, w: 2.1, h: 1.3,
     },
     {
         id: "t-reference",
@@ -427,22 +445,7 @@ export const cells: Cell[] = [
         variant: "reference",
         title: "Reference card",
         lines: ["REDUCTION 24:1", "POLARITY NEGATIVE", "SHEET 1 OF 1"],
-        x: 14.6, y: 5.8, w: 2.8, h: 1.8, tilt: 0.5,
-    },
-    {
-        id: "t-sat-nav",
-        kind: "capture",
-        src: `${CAPTURES}/satellite-nav.jpg`,
-        label: "masthead crop",
-        x: 17.9, y: 6, w: 2.7, h: 1,
-    },
-    {
-        id: "t-coordinates",
-        kind: "plate",
-        variant: "coordinates",
-        title: "EONET_22614",
-        lines: ["35.4166 N", "120.0015 W"],
-        x: 21, y: 5.9, w: 2.2, h: 1.1,
+        x: 11, y: 9.5, w: 2.8, h: 1.8, tilt: 0.5,
     },
     {
         id: "t-timestamp",
@@ -455,48 +458,54 @@ export const cells: Cell[] = [
             "2025·09  sjsuparkingmonitor",
             "2026·01  sfbalalaika.org",
         ],
-        x: 18.2, y: 7.2, w: 3.2, h: 1.7,
+        x: 14.6, y: 9.6, w: 3.2, h: 1.7,
+    },
+    {
+        id: "t-sat-nav",
+        kind: "capture",
+        src: `${CAPTURES}/satellite-nav.jpg`,
+        label: "masthead crop",
+        x: 18.6, y: 9.9, w: 2.7, h: 1,
+    },
+    {
+        id: "t-coordinates",
+        kind: "plate",
+        variant: "coordinates",
+        title: "EONET_22614",
+        lines: ["35.4166 N", "120.0015 W"],
+        x: 27.5, y: 9.9, w: 2.2, h: 1.1,
     },
 
-    // Left band, between Vocalize and the Balalaika ensemble.
+    // Band between the parking cluster and the bottom row.
+    {
+        id: "t-bal-nav",
+        kind: "capture",
+        src: `${CAPTURES}/balalaika-nav.jpg`,
+        label: "masthead crop",
+        x: 2.6, y: 19.6, w: 3, h: 1.1,
+    },
     {
         id: "t-divider-mid",
         kind: "plate",
         variant: "divider",
         title: "D–J",
         lines: ["Continued", "Overleaf"],
-        x: 6.6, y: 8.95, w: 2.6, h: 1.5,
-    },
-    {
-        id: "t-map",
-        kind: "plate",
-        variant: "map",
-        title: "San José · campus",
-        x: 9.4, y: 8.75, w: 2.6, h: 1.7,
-    },
-    {
-        id: "t-bal-nav",
-        kind: "capture",
-        src: `${CAPTURES}/balalaika-nav.jpg`,
-        label: "masthead crop",
-        x: 2, y: 11.2, w: 3, h: 1.1,
-    },
-
-    // Right band, between Satellite and the asset archive.
-    {
-        id: "t-orbit",
-        kind: "plate",
-        variant: "telemetry",
-        title: "Balloon constellation",
-        lines: ["1000 SONDES / HOUR", "ALT 2.0 – 22.0 KM", "24 H OF HISTORY"],
-        x: 24, y: 8.6, w: 2.8, h: 1.5, tilt: 0.6,
+        x: 6.6, y: 19.4, w: 2.6, h: 1.5,
     },
     {
         id: "t-prk-nav",
         kind: "capture",
         src: `${CAPTURES}/parking-nav.jpg`,
         label: "masthead crop",
-        x: 27.6, y: 8.6, w: 2.8, h: 1,
+        x: 10.4, y: 19.6, w: 2.8, h: 1,
+    },
+    {
+        id: "t-orbit",
+        kind: "plate",
+        variant: "telemetry",
+        title: "Balloon constellation",
+        lines: ["1000 SONDES / HOUR", "ALT 2.0 – 22.0 KM", "24 H OF HISTORY"],
+        x: 20.6, y: 19.4, w: 2.8, h: 1.5, tilt: 0.6,
     },
     {
         id: "t-divider-end",
@@ -504,17 +513,17 @@ export const cells: Cell[] = [
         variant: "divider",
         title: "END",
         lines: ["Sheet complete", "Rewind"],
-        x: 30.8, y: 8.6, w: 2.2, h: 1.4,
+        x: 26, y: 19.5, w: 2.2, h: 1.4,
     },
 
-    // Lower band, between the ensemble and the asset archive.
+    // Column between the ensemble and the asset archive.
     {
         id: "t-program",
         kind: "plate",
         variant: "program",
         title: "Performance notice",
         lines: ["2026 San Francisco Slavic Festival", "Russian Center", "31 January 2026 · afternoon"],
-        x: 14.6, y: 16.4, w: 2.6, h: 1.7, tilt: 0.6,
+        x: 16, y: 22.6, w: 2.6, h: 1.7, tilt: 0.6,
     },
     {
         id: "t-label",
@@ -522,7 +531,7 @@ export const cells: Cell[] = [
         variant: "label",
         title: "CHTC",
         lines: ["PROPERTY RECORD"],
-        x: 18.2, y: 16.6, w: 2.4, h: 1.3, tilt: -0.8,
+        x: 16.1, y: 25.3, w: 2.4, h: 1.3, tilt: -0.8,
     },
 ];
 

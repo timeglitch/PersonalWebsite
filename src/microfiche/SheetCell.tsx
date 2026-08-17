@@ -132,22 +132,6 @@ function Plate({ cell }: { cell: Extract<Cell, { kind: "plate" }> }) {
                 </Body>
             );
 
-        case "map":
-            return (
-                <Body style="map" title={title}>
-                    <svg viewBox="0 0 100 52" preserveAspectRatio="none" aria-hidden="true">
-                        {[8, 22, 36, 50, 64, 78, 92].map((x) => (
-                            <line key={`v${x}`} x1={x} y1="0" x2={x - 6} y2="52" />
-                        ))}
-                        {[9, 21, 33, 45].map((y) => (
-                            <line key={`h${y}`} x1="0" y1={y} x2="100" y2={y - 4} />
-                        ))}
-                        <rect className="fiche-map-block" x="36" y="21" width="28" height="12" />
-                        <circle className="fiche-map-pin" cx="50" cy="27" r="3" />
-                    </svg>
-                </Body>
-            );
-
         // Ruled lists of records, all printed the same way.
         case "telemetry":
         case "reference":

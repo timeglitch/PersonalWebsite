@@ -49,21 +49,75 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: calc(var(--unit) * 34);
-  height: calc(var(--unit) * 20);
+  width: calc(var(--unit) * var(--sheet-w));
+  height: calc(var(--unit) * var(--sheet-h));
   transform-origin: 0 0;
   will-change: transform;
+
+  /* The emulsion's mottling, baked to a raster by `npm run film-ground`. It was
+     a dozen radial-gradients here, but this element is far too large for the
+     browser to hold as one texture: it is tiled and rasterised on demand, so
+     every newly exposed tile re-evaluated all twelve, and the travel blur
+     forced that to happen every frame. A stretched image is a blit instead.
+     The source is low-frequency, so 800px stretched across 3300 looks the same
+     as the gradients that produced it. */
+  background-color: var(--fiche-film);
+  background-image: url("/microfiche/archive/film-ground.jpg");
+  background-size: 100% 100%;
 }
 
-/* Faint indexing grid so the sheet reads as a finite, ruled object. */
+
+/* Faint indexing grid so the sheet reads as a finite, ruled object, plus the
+   grain of the emulsion and the dirt sitting on it. Every layer here is a
+   tiled image or a gradient: each data URI is decoded once, the turbulence is
+   evaluated once at tile size, and the rest is a repeat blit, so none of this
+   is re-evaluated while the sheet moves.
+
+   Each filter sets an explicit `x/y/width/height` of 0 0 1 1. Those are
+   objectBoundingBox fractions, which pins the filter region to the rect and so
+   to the tile — `stitchTiles` stitches across the filter region, and with the
+   default 120% region the stitch seam falls outside the tile and the tiling
+   shows.
+
+   GRAIN is two tiles rather than one. A single tile repeats on a visible
+   interval however fine it is; 200px against 340px only realigns every 3400px,
+   which is wider than the sheet. The fine tile carries the speckle and the
+   coarse one a slower mottle. Both bias alpha negative in the colour matrix
+   (0.12a − 0.032 and 0.09a − 0.028), so most of each tile clips to fully
+   transparent; measured mean lift is about 3% and 2.5%, peaking near 8%.
+
+   DUST is a third tile, 760px so its own repeat is hard to catch. Two more
+   turbulences, run through a steep linear feFuncA (5a − 3.85, 6a − 4.95) which
+   is a threshold in all but name: everything below about 0.77 clamps to zero
+   and only the tail survives, as sparse motes rather than a field. The first
+   pass is dark dirt, run at the lower frequency so its motes come out around
+   4px and read as something sitting on the film; the second is the rarer,
+   smaller bright speck where the emulsion is thin. Measured over the tile that
+   is roughly 620 dark and 220 light specks, 0.47% coverage in all.
+
+   The rules are major and minor: a light line every 2 units at ~5% with a
+   stronger one every 8 at ~10%, the major layers listed first so they paint
+   over the minor ones where the two coincide. */
 .fiche-grid {
   position: absolute;
   inset: 0;
+  /* Under the cells, so it textures the film rather than speckling the
+     screenshots. The index rules are a baked tile; see `npm run film-ground`. */
   background-image:
-    linear-gradient(to right, rgba(227, 215, 184, 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(227, 215, 184, 0.07) 1px, transparent 1px);
-  background-size: calc(var(--unit) * 2) calc(var(--unit) * 2);
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='760' height='760' color-interpolation-filters='sRGB'%3E%3Cfilter id='a' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.11' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .05 0 0 0 0 .04 0 0 0 0 .02 0 0 0 1 0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='5' intercept='-3.85'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Cfilter id='b' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.19' numOctaves='2' seed='17' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .95 0 0 0 0 .91 0 0 0 0 .78 0 0 0 1 0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='6' intercept='-4.95'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='760' height='760' filter='url(%23a)'/%3E%3Crect width='760' height='760' filter='url(%23b)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' color-interpolation-filters='sRGB'%3E%3Cfilter id='g' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.42' numOctaves='4' seed='1' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .89 0 0 0 0 .84 0 0 0 0 .7 0 0 0 .12 -.032'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='340' height='340' color-interpolation-filters='sRGB'%3E%3Cfilter id='h' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.26' numOctaves='3' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .89 0 0 0 0 .84 0 0 0 0 .7 0 0 0 .09 -.028'/%3E%3C/filter%3E%3Crect width='340' height='340' filter='url(%23h)'/%3E%3C/svg%3E"),
+    url("/microfiche/archive/film-grid.png");
+  background-size:
+    760px 760px,
+    200px 200px,
+    340px 340px,
+    calc(var(--unit) * 8) calc(var(--unit) * 8);
 }
+
+
+
+
 
 /* Lens: a soft vignette and a hint of a circular optic. */
 .fiche-lens {
