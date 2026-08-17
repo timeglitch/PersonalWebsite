@@ -68,7 +68,7 @@ To add a new `plate` variant: add the name to `PlateVariant`, add a `case` to
 `.fiche-<style>` if it needs its own treatment. Several variants share one
 style, so a plain ruled list can reuse `style="record"` and need no CSS.
 
-## Two things that will bite
+## Don't change
 
 `npm run capture` steps the parking chart back to the last month its collector
 populated (it stopped in April 2026) and waits a long time for the satellite
