@@ -165,9 +165,21 @@ function Artifact({ cell }: { cell: Extract<Cell, { kind: "artifact" }> }) {
             return (
                 <div className="fiche-body fiche-restricted">
                     <span className="fiche-restricted-rule" aria-hidden="true" />
-                    <p className="fiche-title">Restricted</p>
-                    <strong>{title}</strong>
-                    <p className="fiche-restricted-note">{lines.join(" / ")}</p>
+                    {/* An archival withheld mark, so the plate reads as deliberately
+                        blank rather than as a cell that failed to load. */}
+                    <span className="fiche-restricted-mark" aria-hidden="true">
+                        <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <rect x="0.5" y="0.5" width="99" height="99" />
+                            <line x1="0.5" y1="0.5" x2="99.5" y2="99.5" />
+                            <line x1="99.5" y1="0.5" x2="0.5" y2="99.5" />
+                        </svg>
+                        <span>Image withheld</span>
+                    </span>
+                    <span className="fiche-restricted-foot">
+                        <span className="fiche-title">Restricted</span>
+                        <strong>{title}</strong>
+                        <span className="fiche-restricted-note">{lines.join(" / ")}</span>
+                    </span>
                 </div>
             );
 

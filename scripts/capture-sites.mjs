@@ -4,9 +4,9 @@
  * The microfiche viewer deliberately shows an archived moment, so these images
  * are committed and only refreshed on demand:  npm run capture
  *
- * They are written as JPEGs at 1.5x: no cell renders wider than ~660 CSS px,
- * and every capture is pushed through a duotone before it is seen, so
- * compression artefacts never survive to the screen.
+ * They are written as JPEGs at 2x, which covers the framed tile filling most of
+ * the lens on a retina display. Every capture passes through a duotone before
+ * it is seen, so compression artefacts never survive to the screen.
  */
 import { chromium } from "playwright";
 import { mkdir, rm } from "node:fs/promises";
@@ -90,7 +90,7 @@ async function main() {
             const file = path.join(OUT, `${site.slug}-${shot.name}.jpg`);
             const context = await browser.newContext({
                 viewport: shot.viewport,
-                deviceScaleFactor: 1.5,
+                deviceScaleFactor: 2,
                 colorScheme: "light",
                 reducedMotion: "reduce",
             });

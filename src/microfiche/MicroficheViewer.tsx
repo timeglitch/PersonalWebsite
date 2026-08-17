@@ -30,13 +30,14 @@ type View = { x: number; y: number; zoom: number };
 
 /** Pointer travel, in px, past which a gesture counts as a drag rather than a click. */
 const DRAG_THRESHOLD = 7;
-/** Extra sheet units kept around a cluster so neighbouring material stays visible. */
-const CLUSTER_MARGIN = 1.45;
+/** Share of the lens a cluster's framed block fills along its tighter axis.
+ *  The remainder is what neighbouring cells peek through. */
+const FRAME_FILL = 0.9;
 /** Blank film the lens may show past the printed area, so clusters near an
  *  edge can still be centred. The sheet stays finite — this is its margin. */
 const SHEET_BLEED = 3;
 const MIN_ZOOM = 0.3;
-const MAX_ZOOM = 1.05;
+const MAX_ZOOM = 2.2;
 
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -75,14 +76,14 @@ export default function MicroficheViewer({
         return () => query.removeEventListener("change", sync);
     }, []);
 
-    /** Zoom that fits a cluster's bounds inside the lens with a little room around it. */
+    /** Zoom that makes a cluster's framed block fill most of the lens. */
     const zoomForCluster = useCallback((index: number) => {
         const { width, height } = sizeRef.current;
         if (!width || !height) return 0.5;
-        const { bounds } = clusters[index];
-        const fitX = width / ((bounds.w + CLUSTER_MARGIN * 2) * SHEET.unit);
-        const fitY = height / ((bounds.h + CLUSTER_MARGIN * 2) * SHEET.unit);
-        return clamp(Math.min(fitX, fitY), MIN_ZOOM, MAX_ZOOM);
+        const { frame } = clusters[index];
+        const fitX = width / (frame.w * SHEET.unit);
+        const fitY = height / (frame.h * SHEET.unit);
+        return clamp(Math.min(fitX, fitY) * FRAME_FILL, MIN_ZOOM, MAX_ZOOM);
     }, []);
 
     /** Keep the lens over the sheet; `softness` allows rubber-banding while dragging. */
@@ -185,8 +186,6 @@ export default function MicroficheViewer({
             }
 
             const duration = clamp(500 + distance * 36, 500, 1600);
-            // Longer journeys pull the lens back further so more of the sheet passes by.
-            const dip = clamp(distance / 55, 0, 0.24);
             const start = performance.now();
 
             setTravelling(true);
@@ -197,7 +196,8 @@ export default function MicroficheViewer({
             const step = (now: number) => {
                 const t = clamp((now - start) / duration, 0, 1);
                 const eased = easeInOut(t);
-                const zoom = (from.zoom + (target.zoom - from.zoom) * eased) * (1 - dip * Math.sin(Math.PI * eased));
+                // Travel is a pure pan: the lens holds its height and slides.
+                const zoom = from.zoom + (target.zoom - from.zoom) * eased;
                 const next = {
                     x: from.x + (target.x - from.x) * eased,
                     y: from.y + (target.y - from.y) * eased,

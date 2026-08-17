@@ -225,26 +225,29 @@
 }
 .fiche-cover-meta { border-top: 1px solid var(--fiche-rule); padding-top: 4px; }
 
-/* Newspaper-style description clipping. */
+/* Newspaper-style description clipping. This is the cell that carries the
+   project's prose now that there is no caption strip, so it is set at reading
+   size rather than archival-detail size. */
+.fiche-clipping { gap: 6px; }
 .fiche-clipping h4 {
   margin: 0;
   font-family: "Playfair Display", Georgia, serif;
-  font-size: 13px;
+  font-size: 19px;
   line-height: 1.02;
   letter-spacing: -0.02em;
   border-bottom: 1px solid var(--fiche-rule);
-  padding-bottom: 4px;
+  padding-bottom: 5px;
 }
 .fiche-columns {
   columns: 2;
-  column-gap: 8px;
+  column-gap: 12px;
   column-rule: 1px solid var(--fiche-rule);
   overflow: hidden;
 }
 .fiche-columns p {
-  margin: 0 0 5px;
-  font-size: 6.5px;
-  line-height: 1.42;
+  margin: 0 0 6px;
+  font-size: 10.5px;
+  line-height: 1.45;
   text-align: justify;
   hyphens: auto;
 }
@@ -350,10 +353,10 @@
 .fiche-restricted {
   position: relative;
   justify-content: flex-end;
-  gap: 6px;
   background: var(--fiche-paper-dim);
 }
-.fiche-restricted-rule {
+/* Specific enough to survive the stacking rule below. */
+.fiche-restricted > .fiche-restricted-rule {
   position: absolute;
   inset: 0;
   background: repeating-linear-gradient(
@@ -362,7 +365,44 @@
     rgba(46, 42, 30, 0.16) 10px 20px
   );
 }
-.fiche-restricted > * { position: relative; }
+.fiche-restricted > .fiche-restricted-mark {
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  top: 9%;
+  bottom: 27%;
+  display: grid;
+  place-items: center;
+}
+.fiche-restricted-mark svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.fiche-restricted-mark rect,
+.fiche-restricted-mark line {
+  fill: none;
+  stroke: var(--fiche-ink);
+  stroke-width: 0.5;
+  opacity: 0.42;
+}
+.fiche-restricted-mark > span {
+  position: relative;
+  padding: 4px 8px;
+  background: var(--fiche-paper-dim);
+  font-family: "DM Mono", monospace;
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fiche-ink-soft);
+}
+.fiche-restricted-foot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
 .fiche-restricted strong {
   font-family: "Playfair Display", Georgia, serif;
   font-size: 30px;
@@ -371,7 +411,6 @@
   letter-spacing: -0.035em;
 }
 .fiche-restricted-note {
-  margin: 0;
   padding-top: 5px;
   border-top: 1px solid var(--fiche-rule);
   font-family: "DM Mono", monospace;

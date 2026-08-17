@@ -45,11 +45,11 @@ function App() {
                         <h1 id="page-title">Frank<br />Zhang</h1>
                         <div className="intro-copy">
                             <p className="eyebrow">Software engineer · Bay Area, CA</p>
-                            <p className="dek">I write software to solve problems—making useful, expressive things for the web and beyond.</p>
+                            <p className="dek">I write software to solve problems.</p>
                             <nav className="contact-links" aria-label="External links">
-                                <a href="https://github.com/timeglitch" target="_blank" rel="noreferrer">GitHub ↗</a>
-                                <a href="https://www.linkedin.com/in/frankjzhang/" target="_blank" rel="noreferrer">LinkedIn ↗</a>
                                 <a href="https://docs.google.com/document/d/1Ngmw-ZuhaUzupvgZQvM-1YMePI2_ZzQVlHGfEHZp_2Q/edit?usp=sharing" target="_blank" rel="noreferrer">Résumé ↗</a>
+                                <a href="https://www.linkedin.com/in/frankjzhang/" target="_blank" rel="noreferrer">LinkedIn ↗</a>
+                                <a href="https://github.com/timeglitch" target="_blank" rel="noreferrer">GitHub ↗</a>
                             </nav>
                         </div>
                     </section>
@@ -106,17 +106,12 @@ function App() {
                         soundOn={soundOn}
                     />
 
-                    <div className="viewer-caption" key={`${activeProject.id}-caption`}>
-                        <div><p className="project-role">{activeProject.role}</p><h3>{activeProject.name}</h3></div>
-                        <div>
-                            <p>{activeProject.description}</p>
-                            {activeProject.url ? (
-                                <a href={activeProject.url} target="_blank" rel="noreferrer">Open full project ↗</a>
-                            ) : (
-                                <p className="project-restricted">Private project / documentation on request</p>
-                            )}
-                        </div>
-                    </div>
+                    {/* The sheet itself prints the name, dates and description, so
+                        the caption exists only for screen readers. */}
+                    <p className="visually-hidden">
+                        {activeProject.name}. {activeProject.role}. {activeProject.description}{" "}
+                        {activeProject.url ?? "Private project, documentation on request."}
+                    </p>
                 </article>
             </div>
 

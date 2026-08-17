@@ -81,8 +81,8 @@
   line-height: 1.4;
   letter-spacing: -0.025em;
 }
-.contact-links { display: flex; flex-wrap: wrap; gap: 8px 22px; }
-.contact-links a, .viewer-caption a, .mobile-project-detail a {
+.contact-links { display: flex; flex-wrap: wrap; gap: 12px 30px; }
+.contact-links a, .mobile-project-detail a {
   padding-bottom: 2px;
   border-bottom: 1px solid var(--ink);
   font-family: "DM Mono", monospace;
@@ -91,9 +91,16 @@
   text-decoration: none;
   text-transform: uppercase;
 }
-.contact-links a:hover, .viewer-caption a:hover, .mobile-project-detail a:hover {
+.contact-links a:hover, .mobile-project-detail a:hover {
   color: var(--red);
   border-color: var(--red);
+}
+/* The three links carry the intro now that the blurb is one line. */
+.contact-links a {
+  padding-bottom: 5px;
+  border-bottom-width: 2px;
+  font-size: clamp(14px, 1.15vw, 18px);
+  letter-spacing: 0.04em;
 }
 
 .desktop-layout {
@@ -198,28 +205,15 @@
 }
 .viewer-chrome span:last-child { text-align: right; }
 .transport { color: var(--red); letter-spacing: 0.3em; }
-.viewer-caption {
-  display: grid;
-  grid-template-columns: 0.7fr 1.3fr;
-  gap: 24px;
-  min-height: 128px;
-  padding: 16px 18px 18px;
-  background: var(--paper);
-  animation: captionIn 240ms ease-out;
-}
-.viewer-caption h3 {
-  margin: 7px 0 0;
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: clamp(22px, 2vw, 32px);
-  line-height: 1;
-  font-style: italic;
-}
-.viewer-caption > div:last-child { display: flex; flex-direction: column; align-items: flex-start; }
-.viewer-caption > div:last-child p {
-  margin: 0 0 auto;
-  max-width: 640px;
-  font-size: 12px;
-  line-height: 1.5;
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 footer {
@@ -235,11 +229,6 @@ footer {
 }
 footer a { text-decoration: none; }
 footer a:hover { color: var(--red); }
-
-@keyframes captionIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 
 @media (min-width: 901px) and (max-width: 1100px) {
   .desktop-layout {
@@ -281,7 +270,7 @@ footer a:hover { color: var(--red); }
   .masthead { font-size: 8px; }
   .intro h1 { font-size: clamp(68px, 25vw, 116px); }
   .intro-copy { margin-top: 42px; }
-  .contact-links { gap: 10px 17px; }
+  .contact-links { gap: 12px 22px; }
   .project-index button { grid-template-columns: 24px 1fr auto; gap: 6px; }
   .mobile-project-detail { padding-left: 30px; }
   footer { gap: 20px; }
@@ -290,6 +279,5 @@ footer a:hover { color: var(--red); }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .viewer-caption { animation: none; }
   .project-index button::before { transition: none; }
 }

@@ -15,6 +15,15 @@ Implementation notes:
   renders wider than ~660 CSS px and every capture passes through a duotone.
 - The parking collector stopped in April 2026, so its capture steps the chart
   back to the last populated month; otherwise it photographs an empty grid.
+- There is no caption strip under the viewer. The sheet prints the name, dates
+  and description itself, so the only caption left is a visually-hidden one for
+  screen readers.
+- What the lens frames is declared per cluster: any cell marked `framed: true`
+  joins the block that gets fitted. Most clusters stack a wide caption clipping
+  under the capture, but a cluster composes its own shape — the Asset System GUI
+  uses a square restricted plate with its clipping and equipment record beside
+  it. Vary a cluster by moving which cells are marked, not by touching the
+  viewer.
 - The lens may show up to 3 units of blank film past the printed area
   (`SHEET_BLEED`), so clusters near an edge can still be centred. The sheet
   itself stays finite and does not wrap.

@@ -92,6 +92,13 @@ type CellBase = {
     h: number;
     /** Cluster membership. Transitional artifacts leave this undefined. */
     project?: ProjectId;
+    /**
+     * Part of what the lens frames when this project is selected. The framed
+     * cells' bounding box is what gets fitted, so a cluster composes its own
+     * shape: most stack a wide caption clipping under the capture, but a
+     * cluster is free to arrange its framed cells any way it likes.
+     */
+    framed?: boolean;
     /** Slight print rotation, in degrees. */
     tilt?: number;
 };
@@ -139,27 +146,30 @@ const CAPTURES = "/microfiche/captures";
 
 export const cells: Cell[] = [
     // ── Vocalize ── top-left ────────────────────────────────────────────────
+    // Standard composition: capture with a wide caption clipping butted under it.
     {
         id: "voc-landing",
         kind: "capture",
         project: "vocalize",
         primary: true,
+        framed: true,
         src: `${CAPTURES}/vocalize-landing.jpg`,
         label: "vocalize · landing",
-        x: 2, y: 2, w: 6.4, h: 4,
+        x: 2, y: 1.8, w: 6.4, h: 4,
     },
-    { id: "voc-cover", kind: "cover", project: "vocalize", x: 9, y: 2, w: 3, h: 1.9, tilt: -0.5 },
     {
         id: "voc-clip",
         kind: "clipping",
         project: "vocalize",
+        framed: true,
         headline: "Biofeedback for the vowel",
         body: [
             "A browser listens to a learner speaking Spanish and draws the shape of the sound back at them in real time.",
             "Formant tracking turns the first and second resonances of the voice into a moving point on a vowel chart.",
         ],
-        x: 9, y: 4.3, w: 3, h: 1.7, tilt: 0.4,
+        x: 2, y: 5.95, w: 6.4, h: 0.95,
     },
+    { id: "voc-cover", kind: "cover", project: "vocalize", x: 9, y: 1.8, w: 3, h: 1.9, tilt: -0.5 },
     {
         id: "voc-phonetic",
         kind: "artifact",
@@ -167,7 +177,7 @@ export const cells: Cell[] = [
         variant: "phonetic",
         title: "Vowel chart · F1/F2",
         lines: ["i", "e", "a", "o", "u"],
-        x: 2, y: 6.6, w: 3.2, h: 1.9,
+        x: 9, y: 3.95, w: 3, h: 1.9,
     },
     {
         id: "voc-detail",
@@ -175,7 +185,7 @@ export const cells: Cell[] = [
         project: "vocalize",
         src: `${CAPTURES}/vocalize-detail.jpg`,
         label: "vocalize · interface",
-        x: 5.6, y: 6.6, w: 2.8, h: 1.9, tilt: 0.5,
+        x: 9, y: 6.05, w: 3, h: 1.9, tilt: 0.5,
     },
     {
         id: "voc-mobile",
@@ -183,7 +193,7 @@ export const cells: Cell[] = [
         project: "vocalize",
         src: `${CAPTURES}/vocalize-mobile.jpg`,
         label: "vocalize · handheld",
-        x: 9, y: 6.6, w: 1.5, h: 2.7,
+        x: 12.4, y: 1.8, w: 1.5, h: 2.7,
     },
 
     // ── Satellite ── top-right ──────────────────────────────────────────────
@@ -192,22 +202,24 @@ export const cells: Cell[] = [
         kind: "capture",
         project: "satellite",
         primary: true,
+        framed: true,
         src: `${CAPTURES}/satellite-landing.jpg`,
         label: "windborne · viewer",
-        x: 22.4, y: 2.2, w: 6.6, h: 4.1,
+        x: 23.4, y: 1.8, w: 6.4, h: 4,
     },
-    { id: "sat-cover", kind: "cover", project: "satellite", x: 29.6, y: 2.2, w: 2.9, h: 1.9, tilt: 0.5 },
     {
         id: "sat-clip",
         kind: "clipping",
         project: "satellite",
+        framed: true,
         headline: "Constellation over fire",
         body: [
             "Interpolated balloon positions are drawn against EONET wildfire reports on a single rotating globe.",
             "A serverless proxy stands between the browser and the upstream feeds so the client can stay static.",
         ],
-        x: 29.6, y: 4.5, w: 2.9, h: 1.8, tilt: -0.4,
+        x: 23.4, y: 5.95, w: 6.4, h: 0.95,
     },
+    { id: "sat-cover", kind: "cover", project: "satellite", x: 30.4, y: 1.8, w: 3, h: 1.9, tilt: 0.5 },
     {
         id: "sat-telemetry",
         kind: "artifact",
@@ -220,7 +232,7 @@ export const cells: Cell[] = [
             "EONET 41133  FIRE · CALIFORNIA",
             "EONET 41151  FIRE · OREGON",
         ],
-        x: 22.4, y: 6.7, w: 3.4, h: 1.9,
+        x: 30.4, y: 3.95, w: 3, h: 1.9,
     },
     {
         id: "sat-detail",
@@ -228,7 +240,7 @@ export const cells: Cell[] = [
         project: "satellite",
         src: `${CAPTURES}/satellite-detail.jpg`,
         label: "windborne · globe",
-        x: 26.2, y: 6.7, w: 2.8, h: 2, tilt: -0.6,
+        x: 30.4, y: 6.05, w: 3, h: 1.9, tilt: -0.6,
     },
 
     // ── Parking ── centre ───────────────────────────────────────────────────
@@ -237,22 +249,24 @@ export const cells: Cell[] = [
         kind: "capture",
         project: "parking",
         primary: true,
+        framed: true,
         src: `${CAPTURES}/parking-landing.jpg`,
         label: "sjsu parking · history",
-        x: 13.4, y: 8.4, w: 6.4, h: 4,
+        x: 13.6, y: 9.2, w: 6.4, h: 4,
     },
-    { id: "prk-cover", kind: "cover", project: "parking", x: 20.1, y: 8.9, w: 2.9, h: 1.9, tilt: -0.4 },
     {
         id: "prk-clip",
         kind: "clipping",
         project: "parking",
+        framed: true,
         headline: "Where the garages fill",
         body: [
             "A Python collector polls the campus parking status on a fixed interval and keeps the readings.",
             "The front end plots four garages against time so a driver can see the shape of a normal Tuesday.",
         ],
-        x: 20.1, y: 11, w: 2.9, h: 1.7, tilt: 0.5,
+        x: 13.6, y: 13.35, w: 6.4, h: 0.95,
     },
+    { id: "prk-cover", kind: "cover", project: "parking", x: 20.5, y: 9.2, w: 2.9, h: 1.9, tilt: -0.4 },
     {
         id: "prk-data",
         kind: "artifact",
@@ -260,7 +274,7 @@ export const cells: Cell[] = [
         variant: "parking-data",
         title: "Occupancy · sample",
         lines: ["SOUTH 92%", "WEST 92%", "NORTH 81%", "SOUTH CAMPUS 9%"],
-        x: 13.4, y: 12.8, w: 3.2, h: 1.9,
+        x: 20.5, y: 11.35, w: 2.9, h: 1.9,
     },
     {
         id: "prk-detail",
@@ -268,7 +282,7 @@ export const cells: Cell[] = [
         project: "parking",
         src: `${CAPTURES}/parking-detail.jpg`,
         label: "sjsu parking · 30 days",
-        x: 17, y: 12.8, w: 2.8, h: 1.9, tilt: 0.4,
+        x: 20.5, y: 13.45, w: 2.9, h: 1.9, tilt: 0.4,
     },
 
     // ── Balalaika ── bottom-left ────────────────────────────────────────────
@@ -277,22 +291,24 @@ export const cells: Cell[] = [
         kind: "capture",
         project: "balalaika",
         primary: true,
+        framed: true,
         src: `${CAPTURES}/balalaika-landing.jpg`,
         label: "sfbalalaika.org",
-        x: 2.4, y: 13.4, w: 6.4, h: 4,
+        x: 2, y: 13.2, w: 6.4, h: 4,
     },
-    { id: "bal-cover", kind: "cover", project: "balalaika", x: 9, y: 13.4, w: 2.9, h: 1.9, tilt: 0.5 },
     {
         id: "bal-clip",
         kind: "clipping",
         project: "balalaika",
+        framed: true,
         headline: "Folk music, plainly hosted",
         body: [
             "The ensemble needed a site that any member could edit without a build step or a framework.",
             "Raw HTML, CSS and JavaScript keep the pages legible and the hosting free.",
         ],
-        x: 9, y: 15.7, w: 2.9, h: 1.7, tilt: -0.4,
+        x: 2, y: 17.35, w: 6.4, h: 0.95,
     },
+    { id: "bal-cover", kind: "cover", project: "balalaika", x: 9, y: 13.2, w: 3, h: 1.9, tilt: 0.5 },
     {
         id: "bal-repertoire",
         kind: "artifact",
@@ -306,7 +322,7 @@ export const cells: Cell[] = [
             "ROZHOK · SOPILKA",
             "BAYAN · VIOLIN",
         ],
-        x: 2.4, y: 17.8, w: 3.4, h: 1.7,
+        x: 9, y: 15.35, w: 3, h: 1.9,
     },
     {
         id: "bal-detail",
@@ -314,7 +330,7 @@ export const cells: Cell[] = [
         project: "balalaika",
         src: `${CAPTURES}/balalaika-detail.jpg`,
         label: "sfbalalaika · about",
-        x: 6.2, y: 17.8, w: 2.6, h: 1.7, tilt: 0.5,
+        x: 9, y: 17.45, w: 3, h: 1.9, tilt: 0.5,
     },
     {
         id: "bal-mobile",
@@ -322,74 +338,77 @@ export const cells: Cell[] = [
         project: "balalaika",
         src: `${CAPTURES}/balalaika-mobile.jpg`,
         label: "sfbalalaika · handheld",
-        x: 9.2, y: 17.6, w: 1.4, h: 2.3,
+        x: 12.2, y: 13.2, w: 1.2, h: 2.4,
     },
 
     // ── Asset System GUI ── bottom-right, restricted ────────────────────────
+    // Deliberately a different composition: a square plate with its clipping and
+    // equipment record stacked beside it, rather than a wide capture and caption.
     {
         id: "ast-plate",
         kind: "artifact",
         project: "assets",
+        framed: true,
         variant: "restricted",
         title: "Asset System GUI",
         lines: ["Private project", "Documentation on request"],
-        x: 23, y: 13.6, w: 5.4, h: 3.4,
+        x: 23.6, y: 13.2, w: 4.2, h: 4.2,
     },
-    { id: "ast-cover", kind: "cover", project: "assets", x: 28.8, y: 13.6, w: 2.9, h: 1.9, tilt: -0.5 },
     {
         id: "ast-clip",
         kind: "clipping",
         project: "assets",
+        framed: true,
         headline: "Inventory, made clickable",
         body: [
             "Hardware records for the Center for High Throughput Computing lived in a custom database and a lot of memory.",
             "A Tkinter front end put check-in, search and history in one window for staff.",
         ],
-        x: 28.8, y: 15.9, w: 2.9, h: 1.7, tilt: 0.4,
+        x: 28, y: 13.2, w: 3.2, h: 1.2,
     },
     {
         id: "ast-inventory",
         kind: "artifact",
         project: "assets",
+        framed: true,
         variant: "inventory",
         title: "Equipment record",
         lines: ["ASSET 04417", "CLASS · COMPUTE NODE", "STATUS · IN SERVICE", "LOC · CHTC"],
-        x: 23, y: 17.4, w: 3.4, h: 1.8,
+        x: 28, y: 14.9, w: 3.2, h: 0.95,
     },
+    { id: "ast-cover", kind: "cover", project: "assets", x: 23.6, y: 17.6, w: 3.4, h: 1.8, tilt: -0.5 },
 
     // ── Transitional artifacts ──────────────────────────────────────────────
+    // Top band, between Vocalize and Satellite.
     {
         id: "t-divider-ac",
         kind: "artifact",
         variant: "divider",
         title: "A–C",
         lines: ["Selected work", "1 of 1"],
-        x: 12.9, y: 2.6, w: 2.2, h: 1.4,
+        x: 14.4, y: 2, w: 2.2, h: 1.4,
     },
     {
         id: "t-code",
         kind: "artifact",
         variant: "code",
         title: "audio/formants.ts",
-        lines: [
-            "const [f1, f2] = peaks(spectrum)",
-            "return chart.project(f1, f2)",
-        ],
-        x: 15.7, y: 3.4, w: 2.8, h: 1.7, tilt: 0.6,
+        lines: ["const [f1, f2] = peaks(spectrum)", "return chart.project(f1, f2)"],
+        x: 17.2, y: 1.9, w: 2.8, h: 1.7, tilt: 0.6,
     },
     {
         id: "t-testpattern",
         kind: "artifact",
         variant: "test-pattern",
         title: "Density",
-        x: 19.2, y: 2.4, w: 1.9, h: 1.9,
+        x: 20.6, y: 2, w: 1.9, h: 1.9,
     },
     {
         id: "t-voc-nav",
         kind: "capture",
         src: `${CAPTURES}/vocalize-nav.jpg`,
         label: "masthead crop",
-        x: 12.4, y: 5.4, w: 3, h: 1.1,
+        x: 14.4, y: 4, w: 3, h: 1.1,
     },
     {
         id: "t-stamp",
@@ -397,7 +416,13 @@ export const cells: Cell[] = [
         variant: "stamp",
         title: "Filmed",
         lines: ["FRAME COMPLETE"],
-        x: 16.6, y: 5.9, w: 2, h: 1.3, tilt: -1.2,
+        x: 18, y: 4.2, w: 2, h: 1.3, tilt: -1.2,
+    },
+    {
+        id: "t-blank",
+        kind: "artifact",
+        variant: "blank",
+        x: 20.8, y: 4.2, w: 2.1, h: 1.3,
     },
     {
         id: "t-reference",
@@ -405,20 +430,14 @@ export const cells: Cell[] = [
         variant: "reference",
         title: "Reference card",
         lines: ["REDUCTION 24:1", "POLARITY NEGATIVE", "SHEET 1 OF 1"],
-        x: 10.75, y: 8.9, w: 2.5, h: 1.8, tilt: 0.5,
+        x: 14.6, y: 5.8, w: 2.8, h: 1.8, tilt: 0.5,
     },
     {
-        id: "t-map",
-        kind: "artifact",
-        variant: "map",
-        title: "San José · campus",
-        x: 10.2, y: 11.3, w: 2.6, h: 1.7,
-    },
-    {
-        id: "t-blank",
-        kind: "artifact",
-        variant: "blank",
-        x: 20, y: 6.3, w: 2.1, h: 1.4,
+        id: "t-sat-nav",
+        kind: "capture",
+        src: `${CAPTURES}/satellite-nav.jpg`,
+        label: "masthead crop",
+        x: 17.9, y: 6, w: 2.7, h: 1,
     },
     {
         id: "t-coordinates",
@@ -426,37 +445,7 @@ export const cells: Cell[] = [
         variant: "coordinates",
         title: "Index",
         lines: ["37.3352 N", "121.8811 W", "ALT 26 M"],
-        x: 23.9, y: 10, w: 3, h: 1.3,
-    },
-    {
-        id: "t-waveform",
-        kind: "artifact",
-        variant: "waveform",
-        title: "Sustained /a/",
-        x: 6, y: 9.4, w: 2.8, h: 1.5, tilt: -0.5,
-    },
-    {
-        id: "t-bal-nav",
-        kind: "capture",
-        src: `${CAPTURES}/balalaika-nav.jpg`,
-        label: "masthead crop",
-        x: 12.9, y: 15, w: 3, h: 1.1,
-    },
-    {
-        id: "t-program",
-        kind: "artifact",
-        variant: "program",
-        title: "Programme",
-        lines: ["Korobushka", "Dark Eyes", "Kalinka"],
-        x: 12.9, y: 16.6, w: 2.6, h: 1.7, tilt: 0.6,
-    },
-    {
-        id: "t-label",
-        kind: "artifact",
-        variant: "label",
-        title: "CHTC",
-        lines: ["PROPERTY RECORD"],
-        x: 20, y: 13.2, w: 2.4, h: 1.3, tilt: -0.8,
+        x: 21, y: 5.9, w: 2.2, h: 1.1,
     },
     {
         id: "t-timestamp",
@@ -470,29 +459,16 @@ export const cells: Cell[] = [
             "2024·12  parking tracker",
             "2025·05  vocalize",
         ],
-        x: 17.4, y: 17, w: 3.2, h: 1.8,
+        x: 18.2, y: 7.2, w: 3.2, h: 1.7,
     },
+
+    // Left band, between Vocalize and the Balalaika ensemble.
     {
-        id: "t-prk-nav",
-        kind: "capture",
-        src: `${CAPTURES}/parking-nav.jpg`,
-        label: "masthead crop",
-        x: 16.2, y: 15.2, w: 2.8, h: 1,
-    },
-    {
-        id: "t-sat-nav",
-        kind: "capture",
-        src: `${CAPTURES}/satellite-nav.jpg`,
-        label: "masthead crop",
-        x: 23.6, y: 11.9, w: 2.8, h: 1,
-    },
-    {
-        id: "t-orbit",
+        id: "t-waveform",
         kind: "artifact",
-        variant: "telemetry",
-        title: "Pass · descending",
-        lines: ["INC 51.6°", "PERIOD 92.7 MIN", "PROXY · EDGE"],
-        x: 27.4, y: 11.6, w: 2.8, h: 1.5, tilt: 0.6,
+        variant: "waveform",
+        title: "Sustained /a/",
+        x: 2.4, y: 8.4, w: 2.8, h: 1.5, tilt: -0.5,
     },
     {
         id: "t-divider-mid",
@@ -500,7 +476,38 @@ export const cells: Cell[] = [
         variant: "divider",
         title: "D–J",
         lines: ["Continued", "Overleaf"],
-        x: 4.4, y: 11.4, w: 2.6, h: 1.5,
+        x: 6, y: 8.4, w: 2.6, h: 1.5,
+    },
+    {
+        id: "t-map",
+        kind: "artifact",
+        variant: "map",
+        title: "San José · campus",
+        x: 9.4, y: 8.4, w: 2.6, h: 1.7,
+    },
+    {
+        id: "t-bal-nav",
+        kind: "capture",
+        src: `${CAPTURES}/balalaika-nav.jpg`,
+        label: "masthead crop",
+        x: 2.4, y: 10.6, w: 3, h: 1.1,
+    },
+
+    // Right band, between Satellite and the asset archive.
+    {
+        id: "t-orbit",
+        kind: "artifact",
+        variant: "telemetry",
+        title: "Pass · descending",
+        lines: ["INC 51.6°", "PERIOD 92.7 MIN", "PROXY · EDGE"],
+        x: 24, y: 8.6, w: 2.8, h: 1.5, tilt: 0.6,
+    },
+    {
+        id: "t-prk-nav",
+        kind: "capture",
+        src: `${CAPTURES}/parking-nav.jpg`,
+        label: "masthead crop",
+        x: 27.6, y: 8.6, w: 2.8, h: 1,
     },
     {
         id: "t-divider-end",
@@ -508,16 +515,41 @@ export const cells: Cell[] = [
         variant: "divider",
         title: "END",
         lines: ["Sheet complete", "Rewind"],
-        x: 30.4, y: 9.4, w: 2.2, h: 1.4,
+        x: 30.8, y: 8.6, w: 2.2, h: 1.4,
+    },
+
+    // Lower band, between the ensemble and the asset archive.
+    {
+        id: "t-program",
+        kind: "artifact",
+        variant: "program",
+        title: "Programme",
+        lines: ["Korobushka", "Dark Eyes", "Kalinka"],
+        x: 14.6, y: 16.4, w: 2.6, h: 1.7, tilt: 0.6,
+    },
+    {
+        id: "t-label",
+        kind: "artifact",
+        variant: "label",
+        title: "CHTC",
+        lines: ["PROPERTY RECORD"],
+        x: 18.2, y: 16.6, w: 2.4, h: 1.3, tilt: -0.8,
     },
 ];
 
-/** A project's cells, its bounding box, and the point the lens centres on. */
+/** A project's cells, the block the lens frames, and where it centres. */
 export type Cluster = {
     project: Project;
     cells: Cell[];
+    /**
+     * Bounding box of the cluster's `framed` cells. Each cluster composes this
+     * for itself, so the lens fits whatever shape the project calls for rather
+     * than one fixed arrangement.
+     */
+    frame: { x: number; y: number; w: number; h: number };
+    /** The cell the live-site action hangs off: the primary capture, if any. */
+    hero: Cell;
     focus: { x: number; y: number };
-    bounds: { x: number; y: number; w: number; h: number };
     /** Index-style coordinate for the cluster, e.g. "B2". */
     coordinate: string;
 };
@@ -529,15 +561,39 @@ export function coordinateAt(x: number, y: number): string {
     return `${column}${row}`;
 }
 
+const boundingBox = (group: Cell[]) => {
+    const minX = Math.min(...group.map((c) => c.x));
+    const minY = Math.min(...group.map((c) => c.y));
+    return {
+        x: minX,
+        y: minY,
+        w: Math.max(...group.map((c) => c.x + c.w)) - minX,
+        h: Math.max(...group.map((c) => c.y + c.h)) - minY,
+    };
+};
+
 export const clusters: Cluster[] = projects.map((project) => {
     const owned = cells.filter((cell) => cell.project === project.id);
-    const minX = Math.min(...owned.map((c) => c.x));
-    const minY = Math.min(...owned.map((c) => c.y));
-    const maxX = Math.max(...owned.map((c) => c.x + c.w));
-    const maxY = Math.max(...owned.map((c) => c.y + c.h));
-    const bounds = { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
-    const focus = { x: minX + bounds.w / 2, y: minY + bounds.h / 2 };
-    return { project, cells: owned, bounds, focus, coordinate: coordinateAt(focus.x, focus.y) };
+
+    // Fall back to the largest cell so a cluster that marks nothing still frames.
+    const marked = owned.filter((cell) => cell.framed);
+    const frame = boundingBox(
+        marked.length
+            ? marked
+            : [owned.reduce((biggest, cell) => (cell.w * cell.h > biggest.w * biggest.h ? cell : biggest))],
+    );
+
+    const hero =
+        owned.find((cell) => cell.kind === "capture" && cell.primary === true) ?? marked[0] ?? owned[0];
+
+    return {
+        project,
+        cells: owned,
+        frame,
+        hero,
+        focus: { x: frame.x + frame.w / 2, y: frame.y + frame.h / 2 },
+        coordinate: coordinateAt(frame.x, frame.y),
+    };
 });
 
 /** Index of the cluster whose focus is closest to a point on the sheet. */
