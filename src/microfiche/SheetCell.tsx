@@ -277,6 +277,18 @@ export default function SheetCell({ cell, project, active, hinted }: Props) {
                 <figure className="fiche-capture">
                     <span className={`fiche-duotone ${cell.fit === "contain" ? "is-contain" : ""}`}>
                         <img src={cell.src} alt={cell.label} draggable={false} loading="lazy" />
+                        {/* The same frame, untreated, sitting above the two-colour
+                            process. Resting at zero opacity, it costs nothing until
+                            a hover fades it up — and opacity is composited rather
+                            than repainted, so the fade never touches layout. */}
+                        <img
+                            className="fiche-colour"
+                            src={cell.src}
+                            alt=""
+                            aria-hidden="true"
+                            draggable={false}
+                            loading="lazy"
+                        />
                     </span>
                     <figcaption>
                         <span>{cell.label}</span>

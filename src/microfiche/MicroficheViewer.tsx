@@ -360,6 +360,43 @@ export default function MicroficheViewer({
      */
     const pressedRef = useRef<HTMLElement | null>(null);
 
+    /**
+     * Points the hover loupe at the cursor. Writing the centre repaints one
+     * cell, so it is rate-limited to a single write per frame and skipped
+     * entirely while dragging, when the reveal is suppressed anyway.
+     */
+    const loupeRef = useRef<{
+        cell: HTMLElement | null;
+        point: { x: number; y: number } | null;
+        frame: number | null;
+    }>({ cell: null, point: null, frame: null });
+
+    const aimLoupe = useCallback((clientX: number, clientY: number, target: HTMLElement) => {
+        const loupe = loupeRef.current;
+        loupe.cell = target.closest<HTMLElement>("[data-cell]");
+        if (!loupe.cell) return;
+        loupe.point = { x: clientX, y: clientY };
+        if (loupe.frame !== null) return;
+        loupe.frame = requestAnimationFrame(() => {
+            loupe.frame = null;
+            const { cell, point } = loupeRef.current;
+            if (!cell || !point) return;
+            // The cell is inside the scaled sheet, so screen pixels have to come
+            // back to the element's own coordinates before they mean anything.
+            const rect = cell.getBoundingClientRect();
+            const zoom = viewRef.current.zoom || 1;
+            cell.style.setProperty("--loupe-x", `${(point.x - rect.left) / zoom}px`);
+            cell.style.setProperty("--loupe-y", `${(point.y - rect.top) / zoom}px`);
+        });
+    }, []);
+
+    useEffect(() => {
+        const loupe = loupeRef.current;
+        return () => {
+            if (loupe.frame !== null) cancelAnimationFrame(loupe.frame);
+        };
+    }, []);
+
     const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
         if (event.button !== 0) return;
         cancelFrame();
@@ -381,6 +418,7 @@ export default function MicroficheViewer({
 
     const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
         const drag = dragRef.current;
+        if (!drag.moved) aimLoupe(event.clientX, event.clientY, event.target as HTMLElement);
         if (!drag.active || event.pointerId !== drag.pointerId) return;
 
         const dx = event.clientX - drag.lastX;
