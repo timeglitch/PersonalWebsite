@@ -2,8 +2,8 @@
  * Renders one cell of the contact sheet. Website captures get a warm two-colour
  * treatment; everything else is drawn natively so it stays sharp at any zoom.
  */
-import type { Cell, Project } from "./sheetData";
-import { coordinateAt } from "./sheetData";
+import type { Project } from "../projects";
+import { coordinateAt, type Cell } from "./sheetData";
 
 type Props = {
     cell: Cell;

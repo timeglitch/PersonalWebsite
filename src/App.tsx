@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import MicroficheViewer from "./microfiche/MicroficheViewer";
-import { clusters, projects } from "./microfiche/sheetData";
+import { MicroficheViewer, clusters } from "./microfiche";
+import { projects } from "./projects";
 
 function App() {
     const [activeIndex, setActiveIndex] = useState(0);

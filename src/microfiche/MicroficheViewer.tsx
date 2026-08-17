@@ -8,14 +8,8 @@
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import SheetCell from "./SheetCell";
-import {
-    cells,
-    clusters,
-    nearestClusterIndex,
-    projects,
-    SHEET,
-    type ProjectId,
-} from "./sheetData";
+import { projects, type ProjectId } from "../projects";
+import { cells, clusters, nearestClusterIndex, SHEET } from "./sheetData";
 import { useTransportAudio } from "./useTransportAudio";
 import "./microfiche.css";
 
