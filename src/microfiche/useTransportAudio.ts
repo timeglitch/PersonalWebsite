@@ -1,7 +1,12 @@
 /**
  * Transport sound for the microfiche viewer: a quiet mechanical texture while
- * the sheet is moving, and a short lock/click when it settles. Nothing plays
- * while the sheet is at rest, so there is no ambient bed.
+ * the sheet is moving, and a lock when it settles. Nothing plays while the
+ * sheet is at rest, so there is no ambient bed.
+ *
+ * The lock is a heavy panel button — dull contact, a low resonant body, then
+ * the mechanism seating a beat later. It is synthesised rather than sampled
+ * mostly so it can vary: an identical waveform on every settle starts to sound
+ * like a machine gun, and this fires often.
  */
 import { useCallback, useEffect, useRef } from "react";
 
@@ -17,11 +22,15 @@ type Transport = {
 };
 
 const MAX_TEXTURE_GAIN = 0.05;
+/** Peak level of the lock. The one number to nudge if it sits wrong against
+ *  the travel texture. */
+const LOCK_GAIN = 0.4;
 
 export function useTransportAudio(enabled: boolean): Transport {
     const contextRef = useRef<AudioContext | null>(null);
     const textureRef = useRef<{ source: AudioBufferSourceNode; gain: GainNode } | null>(null);
     const noiseRef = useRef<AudioBuffer | null>(null);
+    const clickNoiseRef = useRef<AudioBuffer | null>(null);
     const enabledRef = useRef(enabled);
     enabledRef.current = enabled;
 
@@ -49,6 +58,19 @@ export function useTransportAudio(enabled: boolean): Transport {
             noiseRef.current = buffer;
         }
         return noiseRef.current;
+    }, []);
+
+    const getClickNoise = useCallback((context: AudioContext) => {
+        if (!clickNoiseRef.current) {
+            // White, unlike the transport's brown noise, which has almost
+            // nothing left above 1 kHz to make a contact transient from.
+            const length = Math.floor(context.sampleRate * 0.12);
+            const buffer = context.createBuffer(1, length, context.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
+            clickNoiseRef.current = buffer;
+        }
+        return clickNoiseRef.current;
     }, []);
 
     const stop = useCallback(() => {
@@ -103,18 +125,39 @@ export function useTransportAudio(enabled: boolean): Transport {
         if (!enabledRef.current) return;
         const context = getContext();
         const now = context.currentTime;
+        const buffer = getClickNoise(context);
 
-        const oscillator = context.createOscillator();
-        const gain = context.createGain();
-        oscillator.type = "square";
-        oscillator.frequency.setValueAtTime(82, now);
-        oscillator.frequency.exponentialRampToValueAtTime(48, now + 0.035);
-        gain.gain.setValueAtTime(0.025, now);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
-        oscillator.connect(gain).connect(context.destination);
-        oscillator.start(now);
-        oscillator.stop(now + 0.05);
-    }, [getContext]);
+        /** Nudge a value by up to ±spread, so no two locks are identical. */
+        const vary = (value: number, spread: number) =>
+            value * (1 + (Math.random() * 2 - 1) * spread);
+
+        /** One filtered noise transient with an exponential decay. */
+        const hit = (
+            at: number,
+            type: BiquadFilterType,
+            frequency: number,
+            q: number,
+            peak: number,
+            decay: number,
+        ) => {
+            const source = context.createBufferSource();
+            source.buffer = buffer;
+            const filter = context.createBiquadFilter();
+            filter.type = type;
+            filter.frequency.value = vary(frequency, 0.06);
+            filter.Q.value = q;
+            const gain = context.createGain();
+            gain.gain.setValueAtTime(vary(peak, 0.12) * LOCK_GAIN, at);
+            gain.gain.exponentialRampToValueAtTime(0.0001, at + decay);
+            source.connect(filter).connect(gain).connect(context.destination);
+            source.start(at);
+            source.stop(at + decay + 0.01);
+        };
+
+        hit(now, "highpass", 1900, 0.6, 0.2, 0.006); // contact
+        hit(now, "lowpass", 240, 8, 1, 0.07); // body
+        hit(now + vary(0.026, 0.15), "lowpass", 190, 6, 0.5, 0.055); // seating
+    }, [getClickNoise, getContext]);
 
     // Turning sound off mid-travel should silence the texture immediately.
     useEffect(() => {
