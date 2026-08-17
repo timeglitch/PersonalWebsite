@@ -146,12 +146,15 @@ export const cells: Cell[] = [
         x: 2, y: 8.95, w: 3.4, h: 2,
     },
     {
+        // The app mid-use: a vowel selected, with the F1 and F2 bands marked
+        // on the live spectrum. Cell height set so the 1.64:1 shot fills the
+        // image area once the caption strip is subtracted.
         id: "voc-detail",
         kind: "capture",
         project: "vocalize",
-        src: `${CAPTURES}/vocalize-detail.jpg`,
-        label: "vocalize · interface",
-        x: 9, y: 6.6, w: 3, h: 1.9, tilt: 0.5,
+        src: `${ARCHIVE}/vocalize-formant-ui.jpg`,
+        label: "vocalize · formant tracking",
+        x: 9, y: 6.6, w: 3, h: 2, tilt: 0.5,
     },
     {
         id: "voc-mobile",

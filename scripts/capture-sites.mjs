@@ -21,19 +21,20 @@ const OUT = path.resolve("public/microfiche/captures");
 const sites = [
     {
         slug: "vocalize",
+        // No "detail" shot: the interface is captured by hand instead, in
+        // public/microfiche/archive/vocalize-formant-ui.jpg.
         url: "https://vocalize-web-ten.vercel.app/",
-        settle: 4000,
+        settle: 8000,
         shots: [
             { name: "landing", viewport: { width: 1280, height: 800 } },
             { name: "nav", viewport: { width: 1280, height: 800 }, clip: { x: 0, y: 0, width: 1280, height: 190 } },
-            { name: "detail", viewport: { width: 1280, height: 800 }, clip: { x: 140, y: 220, width: 1000, height: 460 } },
             { name: "mobile", viewport: { width: 420, height: 760 } },
         ],
     },
     {
         slug: "parking",
         url: "https://timeglitch.github.io/SJSUParkingMonitor/",
-        settle: 5000,
+        settle: 10000,
         // The scraper stopped in April 2026, so "Today" and the recent windows
         // plot nothing. Step the 30-day view back to the last populated month
         // so the capture shows a real dataset rather than an empty grid.
@@ -56,7 +57,7 @@ const sites = [
         slug: "satellite",
         url: "https://windborne-nu.vercel.app/",
         // WebGL globe needs time to load tiles and draw a frame worth capturing.
-        settle: 9000,
+        settle: 18000,
         shots: [
             { name: "landing", viewport: { width: 1280, height: 800 } },
             { name: "nav", viewport: { width: 1280, height: 800 }, clip: { x: 0, y: 0, width: 1280, height: 190 } },
@@ -66,7 +67,7 @@ const sites = [
     {
         slug: "balalaika",
         url: "https://sfbalalaika.org",
-        settle: 3500,
+        settle: 7000,
         shots: [
             { name: "landing", viewport: { width: 1280, height: 800 } },
             { name: "nav", viewport: { width: 1280, height: 800 }, clip: { x: 0, y: 0, width: 1280, height: 190 } },
@@ -96,7 +97,7 @@ async function main() {
             });
             const page = await context.newPage();
             try {
-                await page.goto(site.url, { waitUntil: "networkidle", timeout: 45000 });
+                await page.goto(site.url, { waitUntil: "networkidle", timeout: 60000 });
             } catch {
                 // networkidle never settles on the polling dashboards; the load
                 // event plus the settle delay is enough for a stable frame.
