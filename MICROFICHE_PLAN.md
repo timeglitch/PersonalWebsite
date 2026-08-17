@@ -1,8 +1,27 @@
 # Microfiche Project Viewer Plan
 
-Status: planned, not implemented.
+Status: implemented. All ten items of the initial implementation scope are done.
 
 Baseline commit: `f55dab3` (`Finalize portfolio layout before microfiche viewer`)
+
+Implementation notes:
+
+- The sheet is 34×20 grid units (`SHEET.unit` px per unit at zoom 1) in
+  `src/microfiche/sheetData.ts`: 45 cells, of which 19 are transitional
+  artifacts. Cluster bounds, focus points and index coordinates are derived
+  from the cells rather than hand-written.
+- Captures are refreshed with `npm run capture` (`scripts/capture-sites.mjs`,
+  Playwright). They are stored as JPEGs at 1.5x, which is ample given no cell
+  renders wider than ~660 CSS px and every capture passes through a duotone.
+- The parking collector stopped in April 2026, so its capture steps the chart
+  back to the last populated month; otherwise it photographs an empty grid.
+- The lens may show up to 3 units of blank film past the printed area
+  (`SHEET_BLEED`), so clusters near an edge can still be centred. The sheet
+  itself stays finite and does not wrap.
+- The travel blur is an SVG filter on a lens-sized wrapper, attached only while
+  something is moving, so the sheet is never rasterised at rest.
+- Deferred material below is still deferred: the Asset System GUI remains a
+  restricted plate pending user-supplied screenshots.
 
 ## Current site direction
 

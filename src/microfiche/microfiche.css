@@ -1,0 +1,472 @@
+/* Microfiche viewer. The two-colour process is confined to this file — the rest
+   of the site stays clean paper. */
+
+.fiche-window {
+  --unit: 100px;
+  --fiche-film: #23201a;
+  --fiche-paper: #e3d7b8;
+  --fiche-paper-dim: #cdc09e;
+  --fiche-ink: #2e2a1e;
+  --fiche-ink-soft: rgba(46, 42, 30, 0.62);
+  --fiche-rule: rgba(46, 42, 30, 0.28);
+  --fiche-accent: #9f3026;
+
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--fiche-film);
+  cursor: grab;
+  touch-action: none;
+  opacity: 0;
+  transition: opacity 260ms ease-out;
+}
+.fiche-window.is-ready { opacity: 1; }
+.fiche-window:active { cursor: grabbing; }
+.fiche-window:focus-visible { outline: 2px solid var(--fiche-accent); outline-offset: -3px; }
+
+/* The blur filter lives on a lens-sized wrapper so it never rasterises the
+   whole sheet, and it is only attached while something is actually moving. */
+.fiche-film {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.fiche-film.has-motion {
+  filter: url(#fiche-transport-blur) contrast(var(--motion-contrast, 1));
+}
+.fiche-film.is-cut { animation: ficheCut 190ms ease-out; }
+
+.fiche-filter { position: absolute; width: 0; height: 0; }
+
+.fiche-sheet {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(var(--unit) * 34);
+  height: calc(var(--unit) * 20);
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* Faint indexing grid so the sheet reads as a finite, ruled object. */
+.fiche-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(227, 215, 184, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(227, 215, 184, 0.07) 1px, transparent 1px);
+  background-size: calc(var(--unit) * 2) calc(var(--unit) * 2);
+}
+
+/* Lens: a soft vignette and a hint of a circular optic. */
+.fiche-lens {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 46%, transparent 42%, rgba(20, 17, 11, 0.5) 100%);
+  box-shadow: inset 0 0 42px rgba(18, 15, 9, 0.55);
+}
+
+/* ── Cells ───────────────────────────────────────────────────────────────── */
+
+.fiche-cell {
+  position: absolute;
+  overflow: hidden;
+  color: var(--fiche-ink);
+  background: var(--fiche-paper);
+  box-shadow: 0 1px 0 rgba(15, 13, 8, 0.5), 0 6px 14px rgba(12, 10, 6, 0.28);
+  transition: filter 200ms ease-out, box-shadow 200ms ease-out;
+  filter: brightness(0.72) saturate(0.6);
+}
+.fiche-cell.is-active { filter: none; }
+.fiche-cell.is-hinted {
+  outline: 2px solid var(--fiche-accent);
+  outline-offset: 2px;
+  filter: brightness(0.92);
+}
+
+.fiche-coordinate {
+  position: absolute;
+  right: 4px;
+  bottom: 3px;
+  font-family: "DM Mono", monospace;
+  font-size: 7px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fiche-ink-soft);
+  pointer-events: none;
+}
+.fiche-cell.is-capture .fiche-coordinate { display: none; }
+
+/* Captures: warm two-colour process, structure preserved. */
+.fiche-capture {
+  position: relative;
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+.fiche-duotone {
+  position: relative;
+  isolation: isolate;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--fiche-ink);
+}
+.fiche-duotone img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+  mix-blend-mode: screen;
+  /* Brightness comes before contrast so pale pages (Vocalize, the parking
+     dashboard) drop out of the highlight clip and keep their structure. */
+  filter: grayscale(1) brightness(0.85) contrast(1.6);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.fiche-duotone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--fiche-paper);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+.fiche-capture figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 5px;
+  border-top: 1px solid var(--fiche-rule);
+  background: var(--fiche-paper);
+  font-family: "DM Mono", monospace;
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fiche-ink-soft);
+}
+
+.fiche-open {
+  position: absolute;
+  left: 8px;
+  bottom: 26px;
+  padding: 5px 9px;
+  border: 1px solid var(--fiche-paper);
+  background: rgba(35, 32, 26, 0.86);
+  color: var(--fiche-paper);
+  font-family: "DM Mono", monospace;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+  pointer-events: none;
+}
+.fiche-cell.is-active .fiche-open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.fiche-open:hover { border-color: var(--fiche-accent); color: #f0e3c2; background: var(--fiche-accent); }
+
+/* Shared printed-matter shell. */
+.fiche-body {
+  height: 100%;
+  padding: 7px 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+.fiche-title {
+  margin: 0;
+  font-family: "DM Mono", monospace;
+  font-size: 7px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fiche-accent);
+}
+.fiche-foot {
+  margin: 0;
+  font-family: "DM Mono", monospace;
+  font-size: 6.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fiche-ink-soft);
+}
+
+/* Cover card. */
+.fiche-cover { justify-content: space-between; }
+.fiche-cover strong {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 19px;
+  font-style: italic;
+  line-height: 0.94;
+  letter-spacing: -0.03em;
+}
+.fiche-cover-meta,
+.fiche-cover-role {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: "DM Mono", monospace;
+  font-size: 7px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fiche-ink-soft);
+}
+.fiche-cover-meta { border-top: 1px solid var(--fiche-rule); padding-top: 4px; }
+
+/* Newspaper-style description clipping. */
+.fiche-clipping h4 {
+  margin: 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 13px;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  border-bottom: 1px solid var(--fiche-rule);
+  padding-bottom: 4px;
+}
+.fiche-columns {
+  columns: 2;
+  column-gap: 8px;
+  column-rule: 1px solid var(--fiche-rule);
+  overflow: hidden;
+}
+.fiche-columns p {
+  margin: 0 0 5px;
+  font-size: 6.5px;
+  line-height: 1.42;
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* Records: telemetry, reference cards, repertoire, development log. */
+.fiche-record ul,
+.fiche-program ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fiche-record li {
+  font-family: "DM Mono", monospace;
+  font-size: 6.8px;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  padding-bottom: 2px;
+  border-bottom: 1px dotted var(--fiche-rule);
+}
+.fiche-program ol { counter-reset: piece; }
+.fiche-program li {
+  font-family: "Playfair Display", Georgia, serif;
+  font-style: italic;
+  font-size: 11px;
+  counter-increment: piece;
+}
+.fiche-program li::before {
+  content: counter(piece, upper-roman) ". ";
+  font-family: "DM Mono", monospace;
+  font-style: normal;
+  font-size: 7px;
+  color: var(--fiche-ink-soft);
+}
+
+/* Occupancy readout. */
+.fiche-data ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.fiche-data li {
+  display: grid;
+  grid-template-columns: 68px 1fr 26px;
+  align-items: center;
+  gap: 5px;
+  font-family: "DM Mono", monospace;
+  font-size: 6.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.fiche-data li > span:last-child { text-align: right; }
+.fiche-bar {
+  position: relative;
+  height: 5px;
+  border: 1px solid var(--fiche-rule);
+}
+.fiche-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--fill, 0%);
+  background: var(--fiche-ink);
+}
+
+/* Inventory form. */
+.fiche-inventory dl { margin: 0; display: grid; gap: 3px; }
+.fiche-inventory div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--fiche-rule);
+}
+.fiche-inventory dt,
+.fiche-inventory dd {
+  margin: 0;
+  font-family: "DM Mono", monospace;
+  font-size: 6.6px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.fiche-inventory dd { color: var(--fiche-ink-soft); }
+
+/* Code fragment. */
+.fiche-code pre {
+  margin: 0;
+  font-family: "DM Mono", monospace;
+  font-size: 6.4px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  color: var(--fiche-ink-soft);
+}
+
+/* Coordinates strip. */
+.fiche-coordinates { justify-content: center; }
+.fiche-coordinate-value {
+  margin: 0;
+  font-family: "DM Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+/* Restricted plate for the private project. */
+.fiche-restricted {
+  position: relative;
+  justify-content: flex-end;
+  gap: 6px;
+  background: var(--fiche-paper-dim);
+}
+.fiche-restricted-rule {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent 0 10px,
+    rgba(46, 42, 30, 0.16) 10px 20px
+  );
+}
+.fiche-restricted > * { position: relative; }
+.fiche-restricted strong {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 30px;
+  font-style: italic;
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+}
+.fiche-restricted-note {
+  margin: 0;
+  padding-top: 5px;
+  border-top: 1px solid var(--fiche-rule);
+  font-family: "DM Mono", monospace;
+  font-size: 7.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fiche-ink-soft);
+}
+
+/* Archive divider. */
+.fiche-divider {
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: var(--fiche-ink);
+  color: var(--fiche-paper);
+}
+.fiche-divider strong {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 26px;
+  letter-spacing: 0.02em;
+}
+.fiche-divider p {
+  margin: 0;
+  font-family: "DM Mono", monospace;
+  font-size: 6.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+/* Stamp and technical label. */
+.fiche-stamp {
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 2px solid var(--fiche-accent);
+  color: var(--fiche-accent);
+  background: transparent;
+}
+.fiche-stamp strong {
+  font-family: "DM Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.fiche-stamp p,
+.fiche-label p {
+  margin: 0;
+  font-family: "DM Mono", monospace;
+  font-size: 6.4px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.fiche-label { align-items: flex-start; justify-content: center; gap: 3px; }
+.fiche-label strong {
+  font-family: "DM Mono", monospace;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+}
+.fiche-label p { color: var(--fiche-ink-soft); }
+
+/* Quiet cell: crop marks only. */
+.fiche-blank {
+  background:
+    linear-gradient(var(--fiche-ink) 1px, transparent 1px) 8px 8px / 16px 1px no-repeat,
+    linear-gradient(90deg, var(--fiche-ink) 1px, transparent 1px) 8px 8px / 1px 16px no-repeat,
+    linear-gradient(var(--fiche-ink) 1px, transparent 1px) calc(100% - 8px) calc(100% - 8px) / 16px 1px no-repeat,
+    linear-gradient(90deg, var(--fiche-ink) 1px, transparent 1px) calc(100% - 8px) calc(100% - 24px) / 1px 16px no-repeat,
+    var(--fiche-paper);
+}
+
+/* SVG-drawn artifacts. */
+.fiche-body svg { width: 100%; flex: 1; min-height: 0; overflow: visible; }
+.fiche-phonetic polygon { fill: none; stroke: var(--fiche-rule); stroke-width: 0.6; }
+.fiche-phonetic circle { fill: var(--fiche-accent); }
+.fiche-phonetic text {
+  font-family: "Playfair Display", Georgia, serif;
+  font-style: italic;
+  font-size: 7px;
+  fill: var(--fiche-ink);
+}
+.fiche-waveform rect { fill: var(--fiche-ink); }
+.fiche-map line { stroke: var(--fiche-rule); stroke-width: 0.7; }
+.fiche-map .fiche-map-block { fill: none; stroke: var(--fiche-ink); stroke-width: 0.9; }
+.fiche-map .fiche-map-pin { fill: var(--fiche-accent); }
+.fiche-test rect { fill: var(--fiche-ink); }
+
+@keyframes ficheCut {
+  from { opacity: 0.3; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fiche-cell { transition: none; }
+  .fiche-open { transition: none; }
+  .fiche-film.has-motion { filter: none; }
+}

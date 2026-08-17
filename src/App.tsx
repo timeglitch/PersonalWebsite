@@ -1,62 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
-
-type Project = {
-    name: string;
-    year: string;
-    role: string;
-    description: string;
-    url?: string;
-};
-
-const projects: Project[] = [
-    {
-        name: "Vocalize",
-        year: "2025",
-        role: "React · TypeScript · Audio",
-        description:
-            "Help people learn vowel sounds for Spanish using live audio processing and visualizations. A novel application for accessible biofeedback in language learning.",
-        url: "https://vocalize-web-ten.vercel.app/",
-    },
-    {
-        name: "SJSU Parking Tracker",
-        year: "2024",
-        role: "React · Python",
-        description:
-            "A tracker for parking availability at San Jose State University, built with React and a Python backend.",
-        url: "https://timeglitch.github.io/SJSUParkingMonitor/",
-    },
-    {
-        name: "Satellite Tracker",
-        year: "2024",
-        role: "React · Three.js · Data",
-        description:
-            "Visualize interpolated satellite data overlaid on EONET wildfire locations, built with React, Three.js and a serverless proxy.",
-        url: "https://windborne-nu.vercel.app/",
-    },
-    {
-        name: "SF Balalaika Ensemble",
-        year: "2023",
-        role: "HTML · CSS · JavaScript",
-        description:
-            "A website for the San Francisco Balalaika Ensemble, a local folk music group I play in. Built in raw HTML/CSS/JavaScript, to make it as easy as possible to update and host.",
-        url: "https://sfbalalaika.org",
-    },
-    {
-        name: "Asset System GUI",
-        year: "2023",
-        role: "Python · Tkinter · Database",
-        description:
-            "A graphical user interface for Center for High Throughput Computing assets, built with Python and Tkinter on top of a custom database.",
-    },
-];
+import MicroficheViewer from "./microfiche/MicroficheViewer";
+import { clusters, projects } from "./microfiche/sheetData";
 
 function App() {
     const [activeIndex, setActiveIndex] = useState(0);
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [soundOn, setSoundOn] = useState(() =>
         window.matchMedia("(min-width: 901px)").matches,
     );
-    const audioContext = useRef<AudioContext | null>(null);
     const activeProject = projects[activeIndex];
 
     useEffect(() => {
@@ -70,28 +22,6 @@ function App() {
             desktopQuery.removeEventListener("change", syncSoundWithViewport);
         };
     }, []);
-
-    const playTransportClick = () => {
-        if (!soundOn) return;
-        const context = audioContext.current ?? new AudioContext();
-        audioContext.current = context;
-        const oscillator = context.createOscillator();
-        const gain = context.createGain();
-        oscillator.type = "square";
-        oscillator.frequency.setValueAtTime(82, context.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(48, context.currentTime + 0.035);
-        gain.gain.setValueAtTime(0.025, context.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.045);
-        oscillator.connect(gain).connect(context.destination);
-        oscillator.start();
-        oscillator.stop(context.currentTime + 0.05);
-    };
-
-    const selectProject = (index: number) => {
-        if (index === activeIndex) return;
-        setActiveIndex(index);
-        playTransportClick();
-    };
 
     return (
         <main className="portfolio-shell">
@@ -129,24 +59,32 @@ function App() {
                         <h2 id="work-title">Projects</h2>
                         <span>{String(projects.length).padStart(2, "0")} entries</span>
                     </div>
-                    <ol>
+                    <ol onMouseLeave={() => setHoveredIndex(null)}>
                         {projects.map((project, index) => (
-                            <li key={project.name} className={index === activeIndex ? "active" : ""}>
+                            <li key={project.id} className={index === activeIndex ? "active" : ""}>
                                 <button
                                     type="button"
-                                    onMouseEnter={() => selectProject(index)}
-                                    onFocus={() => selectProject(index)}
-                                    onClick={() => selectProject(index)}
+                                    /* Hover only marks the destination on the sheet; travel needs a click. */
+                                    onMouseEnter={() => setHoveredIndex(index)}
+                                    onFocus={() => setHoveredIndex(index)}
+                                    onBlur={() => setHoveredIndex(null)}
+                                    onClick={() => setActiveIndex(index)}
                                     aria-label={`Show ${project.name}`}
+                                    aria-current={index === activeIndex}
                                 >
                                     <span className="project-number">{String(index + 1).padStart(2, "0")}</span>
                                     <span className="project-name">{project.name}</span>
+                                    <span className="project-coordinate" aria-hidden="true">{clusters[index].coordinate}</span>
                                     <span className="project-year">{project.year}</span>
                                 </button>
                                 <article className="mobile-project-detail">
                                     <p className="project-role">{project.role}</p>
                                     <p>{project.description}</p>
-                                    {project.url && <a href={project.url} target="_blank" rel="noreferrer">Visit project ↗</a>}
+                                    {project.url ? (
+                                        <a href={project.url} target="_blank" rel="noreferrer">Visit project ↗</a>
+                                    ) : (
+                                        <p className="project-restricted">Private project / documentation on request</p>
+                                    )}
                                 </article>
                             </li>
                         ))}
@@ -156,22 +94,27 @@ function App() {
 
                 <article className="project-viewer" aria-live="polite">
                     <div className="viewer-chrome">
-                        <span>Frame {String(activeIndex + 1).padStart(2, "0")}</span>
+                        <span>Sheet 01 · {clusters[activeIndex].coordinate}</span>
                         <span className="transport" aria-hidden="true">◀ ● ▶</span>
-                        <span>{activeProject.year}</span>
+                        <span>{activeProject.archive}</span>
                     </div>
-                    <div className={`viewer-window project-art art-${activeIndex + 1}`} key={activeProject.name}>
-                        <span className="art-index">{String(activeIndex + 1).padStart(2, "0")}</span>
-                        <div className="art-crosshair" aria-hidden="true" />
-                        <p>{activeProject.role}</p>
-                        <strong>{activeProject.name}</strong>
-                        <span className="art-note">Selected work · {activeProject.year}</span>
-                    </div>
-                    <div className="viewer-caption" key={`${activeProject.name}-caption`}>
+
+                    <MicroficheViewer
+                        activeIndex={activeIndex}
+                        onActiveChange={setActiveIndex}
+                        hoveredIndex={hoveredIndex}
+                        soundOn={soundOn}
+                    />
+
+                    <div className="viewer-caption" key={`${activeProject.id}-caption`}>
                         <div><p className="project-role">{activeProject.role}</p><h3>{activeProject.name}</h3></div>
                         <div>
                             <p>{activeProject.description}</p>
-                            {activeProject.url && <a href={activeProject.url} target="_blank" rel="noreferrer">Open full project ↗</a>}
+                            {activeProject.url ? (
+                                <a href={activeProject.url} target="_blank" rel="noreferrer">Open full project ↗</a>
+                            ) : (
+                                <p className="project-restricted">Private project / documentation on request</p>
+                            )}
                         </div>
                     </div>
                 </article>

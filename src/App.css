@@ -128,7 +128,7 @@
   isolation: isolate;
   width: 100%;
   display: grid;
-  grid-template-columns: 30px 1fr auto;
+  grid-template-columns: 30px 1fr auto auto;
   gap: 10px;
   align-items: baseline;
   padding: clamp(10px, 1.45vh, 18px) 0;
@@ -153,7 +153,20 @@
   transform: scaleX(1);
   transform-origin: left;
 }
-.project-number, .project-year { font-family: "DM Mono", monospace; font-size: 9px; }
+.project-number, .project-year, .project-coordinate {
+  font-family: "DM Mono", monospace;
+  font-size: 9px;
+}
+/* Sheet coordinate for the project's cluster, so the list doubles as an index. */
+.project-coordinate { opacity: 0.55; letter-spacing: 0.08em; }
+.project-restricted {
+  margin: 0;
+  color: var(--faded-ink);
+  font-family: "DM Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
 .project-name {
   font-family: "Playfair Display", Georgia, serif;
   font-size: clamp(19px, 1.65vw, 28px);
@@ -185,101 +198,6 @@
 }
 .viewer-chrome span:last-child { text-align: right; }
 .transport { color: var(--red); letter-spacing: 0.3em; }
-.viewer-window {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-  background: #272820;
-  animation: filmAdvance 270ms steps(4, end);
-}
-.viewer-window::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  box-shadow: inset 0 0 50px rgba(31, 28, 18, 0.23);
-}
-.project-art {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: clamp(22px, 3.5vw, 58px);
-  color: var(--paper);
-}
-.project-art::before {
-  content: "";
-  position: absolute;
-  width: 46%;
-  aspect-ratio: 1;
-  top: -34%;
-  right: 8%;
-  border: 1px solid currentColor;
-  border-radius: 50%;
-  opacity: 0.32;
-}
-.project-art p, .art-note, .art-index {
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  font-family: "DM Mono", monospace;
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.project-art p { margin-bottom: 12px; }
-.project-art strong {
-  position: relative;
-  z-index: 1;
-  max-width: 86%;
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: clamp(40px, 5.8vw, 90px);
-  line-height: 0.88;
-  letter-spacing: -0.055em;
-  font-style: italic;
-}
-.art-index {
-  position: absolute;
-  top: 8%;
-  left: 4%;
-  font-size: clamp(50px, 8vw, 120px);
-  line-height: 1;
-  opacity: 0.12;
-  letter-spacing: -0.08em;
-}
-.art-note {
-  position: absolute;
-  right: 18px;
-  bottom: 18px;
-  writing-mode: vertical-rl;
-  font-size: 7px;
-}
-.art-crosshair {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  top: 15%;
-  right: 15%;
-  border: 1px solid currentColor;
-  border-radius: 50%;
-  opacity: 0.7;
-}
-.art-crosshair::before, .art-crosshair::after {
-  content: "";
-  position: absolute;
-  background: currentColor;
-}
-.art-crosshair::before { width: 28px; height: 1px; left: -6px; top: 8px; }
-.art-crosshair::after { width: 1px; height: 28px; left: 8px; top: -6px; }
-.art-1 { background: #82362d; }
-.art-2 { background: #4e5848; }
-.art-3 { background: #243942; }
-.art-4 { background: #6f4a2e; }
-.art-5 { background: #34342e; }
-.art-2::after, .art-4::after {
-  box-shadow: inset 0 0 90px rgba(255, 232, 198, 0.18);
-}
 .viewer-caption {
   display: grid;
   grid-template-columns: 0.7fr 1.3fr;
@@ -318,11 +236,6 @@ footer {
 footer a { text-decoration: none; }
 footer a:hover { color: var(--red); }
 
-@keyframes filmAdvance {
-  0% { opacity: 0.25; transform: translateY(12%); filter: contrast(1.6); }
-  45% { opacity: 0.7; transform: translateY(-5%); }
-  100% { opacity: 1; transform: translateY(0); filter: contrast(1); }
-}
 @keyframes captionIn {
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
@@ -350,6 +263,7 @@ footer a:hover { color: var(--red); }
   .desktop-layout { display: block; min-height: auto; padding: 0 0 64px; }
   .left-column { display: block; }
   .project-index button { grid-template-columns: 28px 1fr auto; padding: 18px 0 13px; cursor: default; }
+  .project-coordinate { display: none; }
   .project-index button::before { display: none; }
   .project-index li.active button, .project-index button:hover { color: var(--ink); }
   .project-name { font-size: clamp(22px, 6vw, 38px); }
@@ -376,6 +290,6 @@ footer a:hover { color: var(--red); }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .viewer-window, .viewer-caption { animation: none; }
+  .viewer-caption { animation: none; }
   .project-index button::before { transition: none; }
 }
