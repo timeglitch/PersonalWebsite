@@ -141,6 +141,18 @@
   mix-blend-mode: multiply;
   pointer-events: none;
 }
+/* Diagrams are already black on white, so they print as ink on paper: multiply
+   over the paper ground keeps line art crisp, shows the figure whole, and makes
+   any letterboxing the same colour as the cell. */
+.fiche-duotone.is-contain { background: var(--fiche-paper); }
+.fiche-duotone.is-contain img {
+  object-fit: contain;
+  object-position: center;
+  mix-blend-mode: multiply;
+  filter: grayscale(1) contrast(1.18) brightness(1.02);
+}
+.fiche-duotone.is-contain::after { display: none; }
+
 .fiche-capture figcaption {
   display: flex;
   justify-content: space-between;
@@ -484,13 +496,26 @@
 .fiche-body svg { width: 100%; flex: 1; min-height: 0; overflow: visible; }
 .fiche-phonetic polygon { fill: none; stroke: var(--fiche-rule); stroke-width: 0.6; }
 .fiche-phonetic circle { fill: var(--fiche-accent); }
+.fiche-phonetic .fiche-axis {
+  fill: none;
+  stroke: var(--fiche-ink-soft);
+  stroke-width: 0.5;
+}
+/* Class beats the element selector below, so ticks stay mono while the vowel
+   labels stay italic serif. */
+.fiche-phonetic .fiche-tick {
+  font-family: "DM Mono", monospace;
+  font-style: normal;
+  font-size: 3.4px;
+  letter-spacing: 0.04em;
+  fill: var(--fiche-ink-soft);
+}
 .fiche-phonetic text {
   font-family: "Playfair Display", Georgia, serif;
   font-style: italic;
   font-size: 7px;
   fill: var(--fiche-ink);
 }
-.fiche-waveform rect { fill: var(--fiche-ink); }
 .fiche-map line { stroke: var(--fiche-rule); stroke-width: 0.7; }
 .fiche-map .fiche-map-block { fill: none; stroke: var(--fiche-ink); stroke-width: 0.9; }
 .fiche-map .fiche-map-pin { fill: var(--fiche-accent); }

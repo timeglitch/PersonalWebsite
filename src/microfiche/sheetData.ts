@@ -32,7 +32,6 @@ type CellBase = {
 
 export type ArtifactVariant =
     | "phonetic"
-    | "waveform"
     | "code"
     | "parking-data"
     | "map"
@@ -58,6 +57,12 @@ export type Cell = CellBase &
               label: string;
               /** The one capture per project that carries the live-site action. */
               primary?: boolean;
+              /**
+               * Website captures fill their cell and crop ("cover", the
+               * default). Diagrams must be shown whole, so they use "contain"
+               * and are printed as ink on paper rather than screened onto film.
+               */
+              fit?: "cover" | "contain";
           }
         | { kind: "cover" }
         | { kind: "clipping"; headline: string; body: string[] }
@@ -113,13 +118,32 @@ export const cells: Cell[] = [
     },
     { id: "voc-cover", kind: "cover", project: "vocalize", x: 9, y: 1.8, w: 3, h: 1.9, tilt: -0.5 },
     {
+        id: "voc-formant",
+        kind: "capture",
+        project: "vocalize",
+        fit: "contain",
+        src: `${ARCHIVE}/formant-spectra.jpg`,
+        label: "formant envelopes · f0 100–300 hz",
+        x: 9, y: 3.9, w: 3, h: 2.5,
+    },
+    {
+        // The source–filter model formant tracking rests on.
+        id: "voc-lpc",
+        kind: "capture",
+        project: "vocalize",
+        fit: "contain",
+        src: `${ARCHIVE}/lpc-source-filter.jpg`,
+        label: "lpc · source–filter model",
+        x: 2, y: 7.05, w: 4.4, h: 1.75,
+    },
+    {
         id: "voc-phonetic",
         kind: "artifact",
         project: "vocalize",
         variant: "phonetic",
         title: "Spanish vowels · F1/F2 (Hz)",
         lines: ["Martínez Celdrán 1995", "n = 5"],
-        x: 9, y: 3.95, w: 3, h: 1.9,
+        x: 2, y: 8.95, w: 3.4, h: 2,
     },
     {
         id: "voc-detail",
@@ -127,7 +151,7 @@ export const cells: Cell[] = [
         project: "vocalize",
         src: `${CAPTURES}/vocalize-detail.jpg`,
         label: "vocalize · interface",
-        x: 9, y: 6.05, w: 3, h: 1.9, tilt: 0.5,
+        x: 9, y: 6.6, w: 3, h: 1.9, tilt: 0.5,
     },
     {
         id: "voc-mobile",
@@ -433,33 +457,26 @@ export const cells: Cell[] = [
 
     // Left band, between Vocalize and the Balalaika ensemble.
     {
-        id: "t-waveform",
-        kind: "artifact",
-        variant: "waveform",
-        title: "Sustained /a/",
-        x: 2.4, y: 8.4, w: 2.8, h: 1.5, tilt: -0.5,
-    },
-    {
         id: "t-divider-mid",
         kind: "artifact",
         variant: "divider",
         title: "D–J",
         lines: ["Continued", "Overleaf"],
-        x: 6, y: 8.4, w: 2.6, h: 1.5,
+        x: 6.6, y: 8.95, w: 2.6, h: 1.5,
     },
     {
         id: "t-map",
         kind: "artifact",
         variant: "map",
         title: "San José · campus",
-        x: 9.4, y: 8.4, w: 2.6, h: 1.7,
+        x: 9.4, y: 8.75, w: 2.6, h: 1.7,
     },
     {
         id: "t-bal-nav",
         kind: "capture",
         src: `${CAPTURES}/balalaika-nav.jpg`,
         label: "masthead crop",
-        x: 2.4, y: 10.6, w: 3, h: 1.1,
+        x: 2, y: 11.2, w: 3, h: 1.1,
     },
 
     // Right band, between Satellite and the asset archive.

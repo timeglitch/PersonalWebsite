@@ -19,55 +19,81 @@ function Artifact({ cell }: { cell: Extract<Cell, { kind: "artifact" }> }) {
 
     switch (variant) {
         case "phonetic": {
-            // A real vowel chart: F2 runs right-to-left, F1 top-to-bottom.
-            const plot = SPANISH_VOWELS.map((vowel) => {
-                const f1 = (vowel.f1[0] + vowel.f1[1]) / 2;
-                const f2 = (vowel.f2[0] + vowel.f2[1]) / 2;
-                return {
-                    ipa: vowel.ipa,
-                    x: 10 + ((2700 - f2) * 82) / 1900,
-                    y: 8 + ((f1 - 250) * 40) / 650,
-                };
-            });
+            /**
+             * A vowel chart in the conventional orientation: F2 along the top
+             * running high-to-low left to right, F1 down the left side. That
+             * puts close front /i/ at the top left and open /a/ at the bottom,
+             * matching how the vowel space is always drawn.
+             */
+            const X0 = 22;
+            const X1 = 96;
+            const Y0 = 14;
+            const Y1 = 46;
+            const F2_HIGH = 2700;
+            const F2_LOW = 800;
+            const F1_LOW = 250;
+            const F1_HIGH = 900;
+            const xOf = (f2: number) => X0 + ((F2_HIGH - f2) * (X1 - X0)) / (F2_HIGH - F2_LOW);
+            const yOf = (f1: number) => Y0 + ((f1 - F1_LOW) * (Y1 - Y0)) / (F1_HIGH - F1_LOW);
+
+            const plot = SPANISH_VOWELS.map((vowel) => ({
+                ipa: vowel.ipa,
+                x: xOf((vowel.f2[0] + vowel.f2[1]) / 2),
+                y: yOf((vowel.f1[0] + vowel.f1[1]) / 2),
+            }));
+
             return (
                 <div className="fiche-body fiche-phonetic">
                     <p className="fiche-title">{title}</p>
-                    <svg viewBox="0 0 100 58" preserveAspectRatio="none" aria-hidden="true">
+                    {/* A plot, so it must not be stretched to fit the cell: the
+                        dots have to stay round and the triangle true. */}
+                    <svg viewBox="0 0 100 50" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                        <path className="fiche-axis" d={`M ${X0} ${Y1} L ${X0} ${Y0} L ${X1} ${Y0}`} />
+
+                        {[2500, 2000, 1500, 1000].map((f2) => (
+                            <g key={`f2-${f2}`}>
+                                <line className="fiche-axis" x1={xOf(f2)} y1={Y0} x2={xOf(f2)} y2={Y0 - 2} />
+                                <text className="fiche-tick" x={xOf(f2)} y={Y0 - 4} textAnchor="middle">
+                                    {f2}
+                                </text>
+                            </g>
+                        ))}
+                        {[300, 500, 700, 900].map((f1) => (
+                            <g key={`f1-${f1}`}>
+                                <line className="fiche-axis" x1={X0} y1={yOf(f1)} x2={X0 - 2} y2={yOf(f1)} />
+                                <text className="fiche-tick" x={X0 - 3.5} y={yOf(f1) + 1.4} textAnchor="end">
+                                    {f1}
+                                </text>
+                            </g>
+                        ))}
+
                         <polygon points={plot.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")} />
                         {plot.map((point) => (
                             <g key={point.ipa}>
                                 <circle cx={point.x} cy={point.y} r="2.4" />
-                                <text x={point.x + 4} y={point.y + 3}>{point.ipa}</text>
+                                <text x={point.x + 3.5} y={point.y + 2.6}>{point.ipa}</text>
                             </g>
                         ))}
+
+                        {/* Each title sits with its own axis: F2 above the top
+                            scale, F1 turned along the left one. */}
+                        <text className="fiche-tick" x={(X0 + X1) / 2} y={4} textAnchor="middle">
+                            F2 (Hz)
+                        </text>
+                        <text
+                            className="fiche-tick"
+                            x={7}
+                            y={(Y0 + Y1) / 2}
+                            textAnchor="middle"
+                            transform={`rotate(-90 7 ${(Y0 + Y1) / 2})`}
+                        >
+                            F1 (Hz)
+                        </text>
                     </svg>
                     <p className="fiche-foot">{lines.join(" · ")}</p>
                 </div>
             );
         }
-
-        case "waveform":
-            return (
-                <div className="fiche-body fiche-waveform">
-                    <p className="fiche-title">{title}</p>
-                    <svg viewBox="0 0 120 40" preserveAspectRatio="none" aria-hidden="true">
-                        {Array.from({ length: 60 }, (_, i) => {
-                            // A steady vowel: strong periodic core with a soft attack and decay.
-                            const envelope = Math.sin((i / 59) * Math.PI) ** 0.6;
-                            const height = (2 + Math.abs(Math.sin(i * 1.9)) * 16) * envelope;
-                            return (
-                                <rect
-                                    key={i}
-                                    x={i * 2}
-                                    y={20 - height}
-                                    width="1.1"
-                                    height={height * 2}
-                                />
-                            );
-                        })}
-                    </svg>
-                </div>
-            );
 
         case "code":
             return (
@@ -257,7 +283,7 @@ export default function SheetCell({ cell, project, active, hinted }: Props) {
         >
             {cell.kind === "capture" && (
                 <figure className="fiche-capture">
-                    <span className="fiche-duotone">
+                    <span className={`fiche-duotone ${cell.fit === "contain" ? "is-contain" : ""}`}>
                         <img src={cell.src} alt={cell.label} draggable={false} loading="lazy" />
                     </span>
                     <figcaption>

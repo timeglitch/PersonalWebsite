@@ -10,6 +10,13 @@ Implementation notes:
   `src/microfiche/sheetData.ts`: 45 cells, of which 19 are transitional
   artifacts. Cluster bounds, focus points and index coordinates are derived
   from the cells rather than hand-written.
+- `npm run check` validates the sheet: overlapping cells, cells off the sheet,
+  duplicate ids, missing images, and clusters that frame nothing. Cells are
+  hand-placed on a 34x20 grid, so run it after moving anything.
+- Images fall into two kinds. Website captures use `fit: "cover"` (the default)
+  and are screened onto dark film. Diagrams set `fit: "contain"` and print as
+  ink on paper instead, so the figure is never cropped and any letterboxing
+  matches the cell. Hand-placed images live in `public/microfiche/archive/`.
 - Captures are refreshed with `npm run capture` (`scripts/capture-sites.mjs`,
   Playwright). They are stored as JPEGs at 1.5x, which is ample given no cell
   renders wider than ~660 CSS px and every capture passes through a duotone.
