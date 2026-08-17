@@ -2,6 +2,7 @@
  * Renders one cell of the contact sheet. Website captures get a warm two-colour
  * treatment; everything else is drawn natively so it stays sharp at any zoom.
  */
+import type { ReactNode } from "react";
 import type { Project } from "../projects";
 import { coordinateAt, SPANISH_VOWELS, type Cell } from "./sheetData";
 
@@ -14,7 +15,28 @@ type Props = {
     hinted: boolean;
 };
 
-function Artifact({ cell }: { cell: Extract<Cell, { kind: "artifact" }> }) {
+/**
+ * The shell every plate shares: a paper card, optionally titled. `style` is the
+ * stylesheet block to print with — several variants deliberately share one.
+ */
+function Body({
+    style,
+    title,
+    children,
+}: {
+    style: string;
+    title?: string;
+    children?: ReactNode;
+}) {
+    return (
+        <div className={`fiche-body fiche-${style}`}>
+            {title !== undefined && <p className="fiche-title">{title}</p>}
+            {children}
+        </div>
+    );
+}
+
+function Plate({ cell }: { cell: Extract<Cell, { kind: "plate" }> }) {
     const { variant, title, lines = [] } = cell;
 
     switch (variant) {
@@ -29,13 +51,8 @@ function Artifact({ cell }: { cell: Extract<Cell, { kind: "artifact" }> }) {
             const X1 = 96;
             const Y0 = 14;
             const Y1 = 46;
-            const F2_HIGH = 2700;
-            const F2_LOW = 800;
-            const F1_LOW = 250;
-            const F1_HIGH = 900;
-            const xOf = (f2: number) => X0 + ((F2_HIGH - f2) * (X1 - X0)) / (F2_HIGH - F2_LOW);
-            const yOf = (f1: number) => Y0 + ((f1 - F1_LOW) * (Y1 - Y0)) / (F1_HIGH - F1_LOW);
-
+            const xOf = (f2: number) => X0 + ((2700 - f2) * (X1 - X0)) / 1900;
+            const yOf = (f1: number) => Y0 + ((f1 - 250) * (Y1 - Y0)) / 650;
             const plot = SPANISH_VOWELS.map((vowel) => ({
                 ipa: vowel.ipa,
                 x: xOf((vowel.f2[0] + vowel.f2[1]) / 2),
@@ -43,15 +60,13 @@ function Artifact({ cell }: { cell: Extract<Cell, { kind: "artifact" }> }) {
             }));
 
             return (
-                <div className="fiche-body fiche-phonetic">
-                    <p className="fiche-title">{title}</p>
+                <Body style="phonetic" title={title}>
                     {/* A plot, so it must not be stretched to fit the cell: the
                         dots have to stay round and the triangle true. */}
                     <svg viewBox="0 0 100 50" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
                         <path className="fiche-axis" d={`M ${X0} ${Y1} L ${X0} ${Y0} L ${X1} ${Y0}`} />
-
                         {[2500, 2000, 1500, 1000].map((f2) => (
-                            <g key={`f2-${f2}`}>
+                            <g key={f2}>
                                 <line className="fiche-axis" x1={xOf(f2)} y1={Y0} x2={xOf(f2)} y2={Y0 - 2} />
                                 <text className="fiche-tick" x={xOf(f2)} y={Y0 - 4} textAnchor="middle">
                                     {f2}
@@ -59,14 +74,13 @@ function Artifact({ cell }: { cell: Extract<Cell, { kind: "artifact" }> }) {
                             </g>
                         ))}
                         {[300, 500, 700, 900].map((f1) => (
-                            <g key={`f1-${f1}`}>
+                            <g key={f1}>
                                 <line className="fiche-axis" x1={X0} y1={yOf(f1)} x2={X0 - 2} y2={yOf(f1)} />
                                 <text className="fiche-tick" x={X0 - 3.5} y={yOf(f1) + 1.4} textAnchor="end">
                                     {f1}
                                 </text>
                             </g>
                         ))}
-
                         <polygon points={plot.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")} />
                         {plot.map((point) => (
                             <g key={point.ipa}>
@@ -74,9 +88,7 @@ function Artifact({ cell }: { cell: Extract<Cell, { kind: "artifact" }> }) {
                                 <text x={point.x + 3.5} y={point.y + 2.6}>{point.ipa}</text>
                             </g>
                         ))}
-
-                        {/* Each title sits with its own axis: F2 above the top
-                            scale, F1 turned along the left one. */}
+                        {/* Each title sits with its own axis. */}
                         <text className="fiche-tick" x={(X0 + X1) / 2} y={4} textAnchor="middle">
                             F2 (Hz)
                         </text>
@@ -91,22 +103,20 @@ function Artifact({ cell }: { cell: Extract<Cell, { kind: "artifact" }> }) {
                         </text>
                     </svg>
                     <p className="fiche-foot">{lines.join(" · ")}</p>
-                </div>
+                </Body>
             );
         }
 
         case "code":
             return (
-                <div className="fiche-body fiche-code">
-                    <p className="fiche-title">{title}</p>
+                <Body style="code" title={title}>
                     <pre>{lines.join("\n")}</pre>
-                </div>
+                </Body>
             );
 
         case "parking-data":
             return (
-                <div className="fiche-body fiche-data">
-                    <p className="fiche-title">{title}</p>
+                <Body style="data" title={title}>
                     <ul>
                         {lines.map((line) => {
                             const percent = Number(line.match(/(\d+)%/)?.[1] ?? 0);
@@ -119,13 +129,12 @@ function Artifact({ cell }: { cell: Extract<Cell, { kind: "artifact" }> }) {
                             );
                         })}
                     </ul>
-                </div>
+                </Body>
             );
 
         case "map":
             return (
-                <div className="fiche-body fiche-map">
-                    <p className="fiche-title">{title}</p>
+                <Body style="map" title={title}>
                     <svg viewBox="0 0 100 52" preserveAspectRatio="none" aria-hidden="true">
                         {[8, 22, 36, 50, 64, 78, 92].map((x) => (
                             <line key={`v${x}`} x1={x} y1="0" x2={x - 6} y2="52" />
@@ -136,46 +145,43 @@ function Artifact({ cell }: { cell: Extract<Cell, { kind: "artifact" }> }) {
                         <rect className="fiche-map-block" x="36" y="21" width="28" height="12" />
                         <circle className="fiche-map-pin" cx="50" cy="27" r="3" />
                     </svg>
-                </div>
+                </Body>
             );
 
+        // Ruled lists of records, all printed the same way.
         case "telemetry":
         case "reference":
         case "repertoire":
         case "timestamp":
             return (
-                <div className="fiche-body fiche-record">
-                    <p className="fiche-title">{title}</p>
+                <Body style="record" title={title}>
                     <ul>
                         {lines.map((line) => (
                             <li key={line}>{line}</li>
                         ))}
                     </ul>
-                </div>
+                </Body>
             );
 
         case "coordinates":
             return (
-                <div className="fiche-body fiche-coordinates">
-                    <p className="fiche-title">{title}</p>
+                <Body style="coordinates" title={title}>
                     <p className="fiche-coordinate-value">{lines.join("  ·  ")}</p>
-                </div>
+                </Body>
             );
 
         case "program":
             // A performance notice: the engagement set, then when.
             return (
-                <div className="fiche-body fiche-program">
-                    <p className="fiche-title">{title}</p>
+                <Body style="program" title={title}>
                     <strong>{lines[0]}</strong>
                     <p className="fiche-foot">{lines.slice(1).join(" · ")}</p>
-                </div>
+                </Body>
             );
 
         case "inventory":
             return (
-                <div className="fiche-body fiche-inventory">
-                    <p className="fiche-title">{title}</p>
+                <Body style="inventory" title={title}>
                     <dl>
                         {lines.map((line) => {
                             const [term, ...rest] = line.split(" · ");
@@ -187,12 +193,37 @@ function Artifact({ cell }: { cell: Extract<Cell, { kind: "artifact" }> }) {
                             );
                         })}
                     </dl>
-                </div>
+                </Body>
+            );
+
+        case "test-pattern":
+            return (
+                <Body style="test" title={title}>
+                    <svg viewBox="0 0 60 40" preserveAspectRatio="none" aria-hidden="true">
+                        {Array.from({ length: 6 }, (_, i) => (
+                            <rect key={i} x={i * 10} y="0" width="10" height="16" opacity={0.12 + i * 0.17} />
+                        ))}
+                        {Array.from({ length: 14 }, (_, i) => (
+                            <rect key={`b${i}`} x={i * 4.2} y="22" width={1.4 + i * 0.12} height="18" />
+                        ))}
+                    </svg>
+                </Body>
+            );
+
+        // Same markup, three different treatments in the stylesheet.
+        case "divider":
+        case "stamp":
+        case "label":
+            return (
+                <Body style={variant}>
+                    <strong>{title}</strong>
+                    <p>{lines.join(" · ")}</p>
+                </Body>
             );
 
         case "restricted":
             return (
-                <div className="fiche-body fiche-restricted">
+                <Body style="restricted">
                     <span className="fiche-restricted-rule" aria-hidden="true" />
                     {/* An archival withheld mark, so the plate reads as deliberately
                         blank rather than as a cell that failed to load. */}
@@ -209,46 +240,7 @@ function Artifact({ cell }: { cell: Extract<Cell, { kind: "artifact" }> }) {
                         <strong>{title}</strong>
                         <span className="fiche-restricted-note">{lines.join(" / ")}</span>
                     </span>
-                </div>
-            );
-
-        case "divider":
-            return (
-                <div className="fiche-body fiche-divider">
-                    <strong>{title}</strong>
-                    <p>{lines.join(" · ")}</p>
-                </div>
-            );
-
-        case "test-pattern":
-            return (
-                <div className="fiche-body fiche-test">
-                    <p className="fiche-title">{title}</p>
-                    <svg viewBox="0 0 60 40" preserveAspectRatio="none" aria-hidden="true">
-                        {Array.from({ length: 6 }, (_, i) => (
-                            <rect key={i} x={i * 10} y="0" width="10" height="16" opacity={0.12 + i * 0.17} />
-                        ))}
-                        {Array.from({ length: 14 }, (_, i) => (
-                            <rect key={`b${i}`} x={i * 4.2} y="22" width={1.4 + i * 0.12} height="18" />
-                        ))}
-                    </svg>
-                </div>
-            );
-
-        case "stamp":
-            return (
-                <div className="fiche-body fiche-stamp">
-                    <strong>{title}</strong>
-                    <p>{lines.join(" · ")}</p>
-                </div>
-            );
-
-        case "label":
-            return (
-                <div className="fiche-body fiche-label">
-                    <strong>{title}</strong>
-                    <p>{lines.join(" · ")}</p>
-                </div>
+                </Body>
             );
 
         case "blank":
@@ -328,7 +320,7 @@ export default function SheetCell({ cell, project, active, hinted }: Props) {
                 </div>
             )}
 
-            {cell.kind === "artifact" && <Artifact cell={cell} />}
+            {cell.kind === "plate" && <Plate cell={cell} />}
 
             <span className="fiche-coordinate" aria-hidden="true">{coordinate}</span>
         </div>

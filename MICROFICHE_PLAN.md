@@ -7,19 +7,25 @@ Baseline commit: `f55dab3` (`Finalize portfolio layout before microfiche viewer`
 Implementation notes:
 
 - The sheet is 34×20 grid units (`SHEET.unit` px per unit at zoom 1) in
-  `src/microfiche/sheetData.ts`: 45 cells, of which 19 are transitional
+  `src/microfiche/sheetData.ts`: 48 cells, of which 18 are transitional
   artifacts. Cluster bounds, focus points and index coordinates are derived
   from the cells rather than hand-written.
 - `npm run check` validates the sheet: overlapping cells, cells off the sheet,
   duplicate ids, missing images, and clusters that frame nothing. Cells are
   hand-placed on a 34x20 grid, so run it after moving anything.
+- A cell's `kind` is one of `capture`, `plate`, `clipping`, `cover`. `plate`
+  means drawn in code with a `variant`; it was called `artifact` until that
+  collided with "transitional artifact", which describes position, not drawing.
+  The two are independent: four transitional cells are captures, and six plates
+  belong to clusters.
 - Images fall into two kinds. Website captures use `fit: "cover"` (the default)
   and are screened onto dark film. Diagrams set `fit: "contain"` and print as
   ink on paper instead, so the figure is never cropped and any letterboxing
   matches the cell. Hand-placed images live in `public/microfiche/archive/`.
 - Captures are refreshed with `npm run capture` (`scripts/capture-sites.mjs`,
-  Playwright). They are stored as JPEGs at 1.5x, which is ample given no cell
-  renders wider than ~660 CSS px and every capture passes through a duotone.
+  Playwright). They are stored as JPEGs at 2x, which covers a framed capture filling
+  most of the lens on a retina display; every capture passes through a duotone,
+  so compression artefacts never survive to the screen.
 - The parking collector stopped in April 2026, so its capture steps the chart
   back to the last populated month; otherwise it photographs an empty grid.
 - Dragging no longer snaps. The plan called for releasing the sheet to centre on

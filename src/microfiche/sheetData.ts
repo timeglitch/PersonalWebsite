@@ -30,7 +30,7 @@ type CellBase = {
     tilt?: number;
 };
 
-export type ArtifactVariant =
+export type PlateVariant =
     | "phonetic"
     | "code"
     | "parking-data"
@@ -67,8 +67,8 @@ export type Cell = CellBase &
         | { kind: "cover" }
         | { kind: "clipping"; headline: string; body: string[] }
         | {
-              kind: "artifact";
-              variant: ArtifactVariant;
+              kind: "plate";
+              variant: PlateVariant;
               title?: string;
               lines?: string[];
           }
@@ -138,7 +138,7 @@ export const cells: Cell[] = [
     },
     {
         id: "voc-phonetic",
-        kind: "artifact",
+        kind: "plate",
         project: "vocalize",
         variant: "phonetic",
         title: "Spanish vowels · F1/F2 (Hz)",
@@ -188,7 +188,7 @@ export const cells: Cell[] = [
     { id: "sat-cover", kind: "cover", project: "satellite", x: 30.4, y: 1.8, w: 3, h: 1.9, tilt: 0.5 },
     {
         id: "sat-telemetry",
-        kind: "artifact",
+        kind: "plate",
         project: "satellite",
         variant: "telemetry",
         title: "EONET · wildfires",
@@ -235,7 +235,7 @@ export const cells: Cell[] = [
     { id: "prk-cover", kind: "cover", project: "parking", x: 20.5, y: 9.2, w: 2.9, h: 1.9, tilt: -0.4 },
     {
         id: "prk-data",
-        kind: "artifact",
+        kind: "plate",
         project: "parking",
         variant: "parking-data",
         title: "2025·09·03 13:00 · full",
@@ -277,7 +277,7 @@ export const cells: Cell[] = [
     { id: "bal-cover", kind: "cover", project: "balalaika", x: 9, y: 13.2, w: 3, h: 1.9, tilt: 0.5 },
     {
         id: "bal-repertoire",
-        kind: "artifact",
+        kind: "plate",
         project: "balalaika",
         variant: "repertoire",
         title: "Instrumentation",
@@ -312,7 +312,7 @@ export const cells: Cell[] = [
     // equipment record stacked beside it, rather than a wide capture and caption.
     {
         id: "ast-plate",
-        kind: "artifact",
+        kind: "plate",
         project: "assets",
         framed: true,
         variant: "restricted",
@@ -334,7 +334,7 @@ export const cells: Cell[] = [
     },
     {
         id: "ast-inventory",
-        kind: "artifact",
+        kind: "plate",
         project: "assets",
         framed: true,
         variant: "inventory",
@@ -372,7 +372,7 @@ export const cells: Cell[] = [
     // Top band, between Vocalize and Satellite.
     {
         id: "t-divider-ac",
-        kind: "artifact",
+        kind: "plate",
         variant: "divider",
         title: "A–C",
         lines: ["Selected work", "1 of 1"],
@@ -380,7 +380,7 @@ export const cells: Cell[] = [
     },
     {
         id: "t-code",
-        kind: "artifact",
+        kind: "plate",
         variant: "code",
         title: "src/audioUtils.js",
         lines: [
@@ -392,7 +392,7 @@ export const cells: Cell[] = [
     },
     {
         id: "t-testpattern",
-        kind: "artifact",
+        kind: "plate",
         variant: "test-pattern",
         title: "Density",
         x: 20.6, y: 2, w: 1.9, h: 1.9,
@@ -406,7 +406,7 @@ export const cells: Cell[] = [
     },
     {
         id: "t-stamp",
-        kind: "artifact",
+        kind: "plate",
         variant: "stamp",
         title: "Filmed",
         lines: ["FRAME COMPLETE"],
@@ -414,13 +414,13 @@ export const cells: Cell[] = [
     },
     {
         id: "t-blank",
-        kind: "artifact",
+        kind: "plate",
         variant: "blank",
         x: 20.8, y: 4.2, w: 2.1, h: 1.3,
     },
     {
         id: "t-reference",
-        kind: "artifact",
+        kind: "plate",
         variant: "reference",
         title: "Reference card",
         lines: ["REDUCTION 24:1", "POLARITY NEGATIVE", "SHEET 1 OF 1"],
@@ -435,7 +435,7 @@ export const cells: Cell[] = [
     },
     {
         id: "t-coordinates",
-        kind: "artifact",
+        kind: "plate",
         variant: "coordinates",
         title: "EONET_22614",
         lines: ["35.4166 N", "120.0015 W"],
@@ -443,7 +443,7 @@ export const cells: Cell[] = [
     },
     {
         id: "t-timestamp",
-        kind: "artifact",
+        kind: "plate",
         variant: "timestamp",
         title: "Repositories · created",
         lines: [
@@ -458,7 +458,7 @@ export const cells: Cell[] = [
     // Left band, between Vocalize and the Balalaika ensemble.
     {
         id: "t-divider-mid",
-        kind: "artifact",
+        kind: "plate",
         variant: "divider",
         title: "D–J",
         lines: ["Continued", "Overleaf"],
@@ -466,7 +466,7 @@ export const cells: Cell[] = [
     },
     {
         id: "t-map",
-        kind: "artifact",
+        kind: "plate",
         variant: "map",
         title: "San José · campus",
         x: 9.4, y: 8.75, w: 2.6, h: 1.7,
@@ -482,7 +482,7 @@ export const cells: Cell[] = [
     // Right band, between Satellite and the asset archive.
     {
         id: "t-orbit",
-        kind: "artifact",
+        kind: "plate",
         variant: "telemetry",
         title: "Balloon constellation",
         lines: ["1000 SONDES / HOUR", "ALT 2.0 – 22.0 KM", "24 H OF HISTORY"],
@@ -497,7 +497,7 @@ export const cells: Cell[] = [
     },
     {
         id: "t-divider-end",
-        kind: "artifact",
+        kind: "plate",
         variant: "divider",
         title: "END",
         lines: ["Sheet complete", "Rewind"],
@@ -507,7 +507,7 @@ export const cells: Cell[] = [
     // Lower band, between the ensemble and the asset archive.
     {
         id: "t-program",
-        kind: "artifact",
+        kind: "plate",
         variant: "program",
         title: "Performance notice",
         lines: ["2026 San Francisco Slavic Festival", "Russian Center", "31 January 2026 · afternoon"],
@@ -515,7 +515,7 @@ export const cells: Cell[] = [
     },
     {
         id: "t-label",
-        kind: "artifact",
+        kind: "plate",
         variant: "label",
         title: "CHTC",
         lines: ["PROPERTY RECORD"],

@@ -37,7 +37,13 @@ const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 2.2;
 
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+const easeOut = (t: number) => 1 - (1 - t) ** 3;
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const lerpView = (from: View, to: View, t: number): View => ({
+    x: from.x + (to.x - from.x) * t,
+    y: from.y + (to.y - from.y) * t,
+    zoom: from.zoom + (to.zoom - from.zoom) * t,
+});
 
 export default function MicroficheViewer({
     activeIndex,
@@ -59,7 +65,6 @@ export default function MicroficheViewer({
     /** The index the viewer itself last settled on, so its own snaps don't re-trigger travel. */
     const settledRef = useRef(activeIndex);
     const [ready, setReady] = useState(false);
-    const [travelling, setTravelling] = useState(false);
 
     const transport = useTransportAudio(soundOn);
     const reducedMotionRef = useRef(false);
@@ -147,11 +152,48 @@ export default function MicroficheViewer({
         }
     }, []);
 
+    /** Park the lens and drop every motion effect. */
+    const settleAt = useCallback(
+        (view: View) => {
+            viewRef.current = view;
+            applyView();
+            clearMotion();
+        },
+        [applyView, clearMotion],
+    );
+
+    /**
+     * The one duration-based animation driver. Everything timed runs through
+     * here so only a single frame is ever in flight, and cancelFrame stops
+     * whatever it is without the callers knowing about each other.
+     */
+    const tween = useCallback(
+        (
+            duration: number,
+            ease: (t: number) => number,
+            onStep: (eased: number) => void,
+            onDone: () => void,
+        ) => {
+            const startedAt = performance.now();
+            const step = (now: number) => {
+                const t = clamp((now - startedAt) / duration, 0, 1);
+                onStep(ease(t));
+                if (t < 1) {
+                    frameRef.current = requestAnimationFrame(step);
+                    return;
+                }
+                frameRef.current = null;
+                onDone();
+            };
+            frameRef.current = requestAnimationFrame(step);
+        },
+        [],
+    );
+
     /** Animate the lens to a cluster. Travel time grows with distance. */
     const travelTo = useCallback(
         (index: number, options: { silent?: boolean } = {}) => {
-            const { width } = sizeRef.current;
-            if (!width) return;
+            if (!sizeRef.current.width) return;
             cancelFrame();
 
             const from = { ...viewRef.current };
@@ -160,76 +202,55 @@ export default function MicroficheViewer({
                 y: clusters[index].focus.y,
                 zoom: zoomForCluster(index),
             });
-
             const distance = Math.hypot(target.x - from.x, target.y - from.y);
             settledRef.current = index;
 
             if (reducedMotionRef.current || distance < 0.01) {
-                // Reduced motion swaps the long pan for a short fade and a snap.
-                viewRef.current = target;
-                applyView();
-                clearMotion();
-                setTravelling(false);
-                if (distance >= 0.01) {
-                    if (!options.silent) transport.lock();
-                    const film = filmRef.current;
-                    if (film) {
-                        // Restart the fade by forcing a reflow between removals.
-                        film.classList.remove("is-cut");
-                        film.getBoundingClientRect();
-                        film.classList.add("is-cut");
-                    }
+                // Reduced motion swaps the long pan for a short fade and a cut.
+                settleAt(target);
+                if (distance < 0.01) return;
+                if (!options.silent) transport.lock();
+                const film = filmRef.current;
+                if (film) {
+                    film.classList.remove("is-cut");
+                    film.getBoundingClientRect(); // force a reflow so it replays
+                    film.classList.add("is-cut");
                 }
                 return;
             }
 
-            const duration = clamp(500 + distance * 36, 500, 1600);
-            const start = performance.now();
-
-            setTravelling(true);
             if (!options.silent) transport.start();
+            let previous = from;
 
-            let previous = { x: from.x, y: from.y };
-
-            const step = (now: number) => {
-                const t = clamp((now - start) / duration, 0, 1);
-                const eased = easeInOut(t);
-                // Travel is a pure pan: the lens holds its height and slides.
-                const zoom = from.zoom + (target.zoom - from.zoom) * eased;
-                const next = {
-                    x: from.x + (target.x - from.x) * eased,
-                    y: from.y + (target.y - from.y) * eased,
-                    zoom,
-                };
-                viewRef.current = next;
-                applyView();
-
-                const screenVx = (next.x - previous.x) * SHEET.unit * zoom;
-                const screenVy = (next.y - previous.y) * SHEET.unit * zoom;
-                previous = { x: next.x, y: next.y };
-                const speed = applyMotion(screenVx, screenVy);
-                if (!options.silent) {
-                    transport.setIntensity(clamp(speed / 26, 0, 1) * clamp(0.45 + distance / 30, 0, 1));
-                }
-
-                if (t < 1) {
-                    frameRef.current = requestAnimationFrame(step);
-                    return;
-                }
-                frameRef.current = null;
-                viewRef.current = target;
-                applyView();
-                clearMotion();
-                setTravelling(false);
-                if (!options.silent) {
-                    transport.stop();
-                    transport.lock();
-                }
-            };
-
-            frameRef.current = requestAnimationFrame(step);
+            tween(
+                clamp(500 + distance * 36, 500, 1600),
+                easeInOut,
+                (eased) => {
+                    // Travel is a pure pan: the lens holds its height and slides.
+                    const next = lerpView(from, target, eased);
+                    viewRef.current = next;
+                    applyView();
+                    const speed = applyMotion(
+                        (next.x - previous.x) * SHEET.unit * next.zoom,
+                        (next.y - previous.y) * SHEET.unit * next.zoom,
+                    );
+                    previous = next;
+                    if (!options.silent) {
+                        transport.setIntensity(
+                            clamp(speed / 26, 0, 1) * clamp(0.45 + distance / 30, 0, 1),
+                        );
+                    }
+                },
+                () => {
+                    settleAt(target);
+                    if (!options.silent) {
+                        transport.stop();
+                        transport.lock();
+                    }
+                },
+            );
         },
-        [applyMotion, applyView, cancelFrame, clampView, clearMotion, transport, zoomForCluster],
+        [applyMotion, applyView, cancelFrame, clampView, settleAt, transport, tween, zoomForCluster],
     );
 
     /**
@@ -240,45 +261,32 @@ export default function MicroficheViewer({
      */
     const comeToRest = useCallback(() => {
         cancelFrame();
-        const view = viewRef.current;
+        const from = viewRef.current;
 
         // Tell the list where we are, without letting that trigger a travel.
-        const index = nearestClusterIndex(view.x, view.y);
+        const index = nearestClusterIndex(from.x, from.y);
         settledRef.current = index;
         if (index !== activeIndex) onActiveChange(index);
 
-        const target = clampView(view, 0);
-        const travel = Math.hypot(target.x - view.x, target.y - view.y);
-
-        if (travel < 0.01 || reducedMotionRef.current) {
-            viewRef.current = target;
-            applyView();
-            clearMotion();
+        const target = clampView(from, 0);
+        if (Math.hypot(target.x - from.x, target.y - from.y) < 0.01 || reducedMotionRef.current) {
+            settleAt(target);
             return;
         }
 
-        const from = { ...view };
-        const start = performance.now();
-        const duration = 300;
-        const step = (now: number) => {
-            const t = clamp((now - start) / duration, 0, 1);
-            const eased = 1 - (1 - t) ** 3;
-            viewRef.current = {
-                x: from.x + (target.x - from.x) * eased,
-                y: from.y + (target.y - from.y) * eased,
-                zoom: from.zoom,
-            };
-            applyView();
-            if (t < 1) {
-                frameRef.current = requestAnimationFrame(step);
-                return;
-            }
-            frameRef.current = null;
-            clearMotion();
-            transport.lock();
-        };
-        frameRef.current = requestAnimationFrame(step);
-    }, [activeIndex, applyView, cancelFrame, clampView, clearMotion, onActiveChange, transport]);
+        tween(
+            300,
+            easeOut,
+            (eased) => {
+                viewRef.current = lerpView(from, target, eased);
+                applyView();
+            },
+            () => {
+                settleAt(target);
+                transport.lock();
+            },
+        );
+    }, [activeIndex, applyView, cancelFrame, clampView, onActiveChange, settleAt, transport, tween]);
 
     // Measure the lens and keep the current cluster framed through resizes.
     useLayoutEffect(() => {
@@ -356,7 +364,6 @@ export default function MicroficheViewer({
         if (event.button !== 0) return;
         cancelFrame();
         transport.stop();
-        setTravelling(false);
         const drag = dragRef.current;
         drag.active = true;
         drag.moved = false;
@@ -583,7 +590,7 @@ export default function MicroficheViewer({
 
     return (
         <div
-            className={`fiche-window ${travelling ? "is-travelling" : ""} ${ready ? "is-ready" : ""}`}
+            className={`fiche-window ${ready ? "is-ready" : ""}`}
             ref={stageRef}
             role="application"
             aria-roledescription="Microfiche viewer"
