@@ -10,8 +10,8 @@
   --fiche-ink-soft: rgba(46, 42, 30, 0.62);
   --fiche-rule: rgba(46, 42, 30, 0.28);
   --fiche-accent: #9f3026;
-  --fiche-mono: "DM Mono", monospace;
-  --fiche-serif: "Playfair Display", Georgia, serif;
+  --fiche-mono: "Space Mono", monospace;
+  --fiche-serif: "Newsreader", Georgia, serif;
 
   position: relative;
   flex: 1;

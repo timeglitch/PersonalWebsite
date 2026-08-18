@@ -14,7 +14,7 @@
   border-top: 1px solid var(--ink);
   border-bottom: 1px solid var(--ink);
   padding: 7px 0;
-  font-family: "DM Mono", monospace;
+  font-family: "Space Mono", monospace;
   font-size: 10px;
   line-height: 1;
   text-transform: uppercase;
@@ -38,7 +38,7 @@
   padding: 5px 0;
   color: var(--faded-ink);
   background: transparent;
-  font-family: "DM Mono", monospace;
+  font-family: "Space Mono", monospace;
   font-size: inherit;
   text-transform: uppercase;
   letter-spacing: inherit;
@@ -54,8 +54,8 @@
 .intro h1 {
   margin: 0;
   width: max-content;
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: clamp(86px, 9.5vw, 156px);
+  font-family: "Newsreader", Georgia, serif;
+  font-size: clamp(76px, 8.6vw, 130px);
   line-height: 0.72;
   letter-spacing: -0.075em;
   font-weight: 700;
@@ -68,7 +68,7 @@
 .eyebrow, .project-role {
   margin: 0;
   color: var(--red);
-  font-family: "DM Mono", monospace;
+  font-family: "Space Mono", monospace;
   font-size: 10px;
   line-height: 1.4;
   letter-spacing: 0.08em;
@@ -85,7 +85,7 @@
 .contact-links a, .mobile-project-detail a {
   padding-bottom: 2px;
   border-bottom: 1px solid var(--ink);
-  font-family: "DM Mono", monospace;
+  font-family: "Space Mono", monospace;
   font-size: 10px;
   letter-spacing: 0.06em;
   text-decoration: none;
@@ -123,10 +123,10 @@
   padding: 8px 0;
   border-top: 1px solid var(--ink);
   border-bottom: 1px solid var(--ink);
-  font-family: "DM Mono", monospace;
+  font-family: "Space Mono", monospace;
   text-transform: uppercase;
 }
-.section-rule h2 { margin: 0; font-size: 11px; letter-spacing: 0.12em; font-weight: 500; }
+.section-rule h2 { margin: 0; font-size: 11px; letter-spacing: 0.12em; font-weight: 700; }
 .section-rule span { color: var(--faded-ink); font-size: 9px; letter-spacing: 0.08em; }
 .project-index ol { margin: 0; padding: 0; list-style: none; }
 .project-index li { border-bottom: 1px solid var(--rule); }
@@ -161,7 +161,7 @@
   transform-origin: left;
 }
 .project-number, .project-year, .project-coordinate {
-  font-family: "DM Mono", monospace;
+  font-family: "Space Mono", monospace;
   font-size: 9px;
 }
 /* Sheet coordinate for the project's cluster, so the list doubles as an index. */
@@ -169,13 +169,14 @@
 .project-restricted {
   margin: 0;
   color: var(--faded-ink);
-  font-family: "DM Mono", monospace;
+  font-family: "Space Mono", monospace;
   font-size: 10px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 .project-name {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: "Newsreader", Georgia, serif;
+  font-weight: 700;
   font-size: clamp(19px, 1.65vw, 28px);
   line-height: 1;
   font-style: italic;
@@ -198,7 +199,7 @@
   align-items: center;
   padding: 7px 9px;
   border-bottom: 1px solid var(--ink);
-  font-family: "DM Mono", monospace;
+  font-family: "Space Mono", monospace;
   font-size: 8px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -222,7 +223,7 @@ footer {
   padding: 10px 0 0;
   border-top: 1px solid var(--ink);
   color: var(--faded-ink);
-  font-family: "DM Mono", monospace;
+  font-family: "Space Mono", monospace;
   font-size: 8px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -237,7 +238,7 @@ footer a:hover { color: var(--red); }
   }
 
   .intro h1 {
-    font-size: clamp(86px, 12vw, 132px);
+    font-size: clamp(76px, 9.7vw, 107px);
   }
 }
 
