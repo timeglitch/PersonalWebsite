@@ -67,7 +67,12 @@ function App() {
                     </div>
                     <ol onMouseLeave={() => setHoveredIndex(null)}>
                         {projects.map((project, index) => (
-                            <li key={project.id} className={index === activeIndex ? "active" : ""}>
+                            <li
+                                key={project.id}
+                                className={index === activeIndex ? "active" : ""}
+                                style={{ zIndex: index + 1 }}
+                            >
+                                <span className="key-shadow" aria-hidden="true" />
                                 <button
                                     type="button"
                                     /* Hover only marks the destination on the sheet; travel needs a click. */

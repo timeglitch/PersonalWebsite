@@ -6,6 +6,9 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   --paper: #eee8d7;
+  /* The transport key's face, lit from above. */
+  --key: #e6dfca;
+  --key-hi: #f8f4e8;
   --ink: #201f1a;
   --faded-ink: #66614f;
   --red: #9f3026;

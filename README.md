@@ -14,6 +14,9 @@ npm run capture      # re-photograph the four live project sites
 npm run film-ground  # re-bake the film texture images
 ```
 
+Project names show on one line in the index keys — about 21 characters at the
+narrowest desktop column, longer names ellipsize.
+
 ## The microfiche viewer
 
 The desktop layout is a contact sheet of film seen through a lens.
