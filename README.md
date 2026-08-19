@@ -75,6 +75,14 @@ style, so a plain ruled list can reuse `style="record"` and need no CSS.
 
 - **Mobile.** The viewer is desktop-only; below 900px the sheet is hidden and
   the projects fall back to a stacked list.
+- **Keyboard.** Arrows step between projects and Enter opens the live site, but
+  the lens itself cannot be panned.
+- **A signifier at rest.** Nothing says the sheet is draggable once the opening
+  travel has finished. Perforated edge strips did the job and were removed for
+  being ugly; the replacement should look better, and could tick or otherwise
+  register movement as it happens.
+- **A layout utility.** Cells are hand-placed by coordinate and `npm run check`
+  only reports mistakes after the fact.
 - **GitHub, LinkedIn and résumé as tiles** on the sheet, rather than only as
   links in the intro.
 - **New projects and photos.**
