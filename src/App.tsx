@@ -107,12 +107,6 @@ function App() {
                 </div>
 
                 <article className="project-viewer" aria-live="polite">
-                    <div className="viewer-chrome">
-                        <span>Sheet 01 · {clusters[activeIndex].coordinate}</span>
-                        <span className="transport" aria-hidden="true">◀ ● ▶</span>
-                        <span>{activeProject.archive}</span>
-                    </div>
-
                     <MicroficheViewer
                         activeIndex={activeIndex}
                         onActiveChange={setActiveIndex}

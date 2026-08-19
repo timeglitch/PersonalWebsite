@@ -38,6 +38,12 @@ const MAX_ZOOM = 2.2;
 
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 const easeOut = (t: number) => 1 - (1 - t) ** 3;
+/** The opening travel's own curve. A cubic tail spends its last half-second
+ *  covering a couple of pixels, which reads as the sheet sticking rather than
+ *  landing; a square one decelerates evenly and still arrives at a standstill. */
+const easeHome = (t: number) => 1 - (1 - t) ** 2;
+/** How far off its mark the sheet parks before the opening travel, in units. */
+const ENTRY_OFFSET = { x: 2.6, y: 1.6 };
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const lerpView = (from: View, to: View, t: number): View => ({
     x: from.x + (to.x - from.x) * t,
@@ -67,7 +73,11 @@ export default function MicroficheViewer({
     const [ready, setReady] = useState(false);
 
     const transport = useTransportAudio(soundOn);
-    const reducedMotionRef = useRef(false);
+    // Seeded rather than left false until the first effect runs: the opening
+    // frame is measured in a layout effect, which is earlier than that.
+    const reducedMotionRef = useRef(
+        typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    );
 
     useEffect(() => {
         const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -130,6 +140,9 @@ export default function MicroficheViewer({
         sheet.style.transform =
             `translate3d(${width / 2}px, ${height / 2}px, 0) scale(${zoom}) ` +
             `translate3d(${-x * SHEET.unit}px, ${-y * SHEET.unit}px, 0)`;
+        // The perforations ride the film's horizontal offset, so the edge
+        // streams past whenever the sheet does.
+        stageRef.current?.style.setProperty("--sprocket-x", `${-x * SHEET.unit * zoom}px`);
     }, []);
 
     /** Directional blur + contrast, driven by how fast the sheet is moving on screen. */
@@ -312,11 +325,31 @@ export default function MicroficheViewer({
             sizeRef.current = { width: box.width, height: box.height };
             if (first) {
                 const index = settledRef.current;
-                viewRef.current = clampView({
+                const opening = clampView({
                     x: clusters[index].focus.x,
                     y: clusters[index].focus.y,
                     zoom: sheetZoom(),
                 });
+                // Park off the opening frame; the entry travel below brings it
+                // home, so the first thing the sheet does is move.
+                entryRef.current = opening;
+                // Reduced motion never parks: the jump home would be the only
+                // thing it saw, which is worse than opening where it belongs.
+                if (reducedMotionRef.current) {
+                    viewRef.current = opening;
+                    applyView();
+                    setReady(true);
+                    return;
+                }
+                const away = (sign: number) =>
+                    clampView({
+                        ...opening,
+                        x: opening.x + ENTRY_OFFSET.x * sign,
+                        y: opening.y + ENTRY_OFFSET.y * sign,
+                    });
+                const out = away(1);
+                const reach = (v: View) => Math.hypot(v.x - opening.x, v.y - opening.y);
+                viewRef.current = reach(out) > 0.7 ? out : away(-1);
                 applyView();
                 setReady(true);
             } else if (frameRef.current === null) {
@@ -350,6 +383,47 @@ export default function MicroficheViewer({
         }
         travelRef.current(activeRef.current);
     }, [focusToken, ready]);
+
+    /**
+     * The opening travel. The sheet starts off its mark and pans home, so the
+     * first thing anyone sees is the film moving — a cursor only advertises the
+     * drag once the pointer is already over the sheet, and this reaches someone
+     * who never goes near it. Skipped if anything else already owns the frame,
+     * so it can never fight a click made before it starts.
+     */
+    const entryRef = useRef<View | null>(null);
+    const enteredRef = useRef(false);
+    useEffect(() => {
+        if (!ready || enteredRef.current) return;
+        enteredRef.current = true;
+        const target = entryRef.current;
+        if (!target) return;
+        if (reducedMotionRef.current) {
+            settleAt(target);
+            return;
+        }
+        const timer = window.setTimeout(() => {
+            if (frameRef.current !== null) return;
+            const from = { ...viewRef.current };
+            let previous = from;
+            tween(
+                1600,
+                easeHome,
+                (eased) => {
+                    const next = lerpView(from, target, eased);
+                    viewRef.current = next;
+                    applyView();
+                    applyMotion(
+                        (next.x - previous.x) * SHEET.unit * next.zoom,
+                        (next.y - previous.y) * SHEET.unit * next.zoom,
+                    );
+                    previous = next;
+                },
+                () => settleAt(target),
+            );
+        }, 340);
+        return () => window.clearTimeout(timer);
+    }, [ready, tween, applyView, applyMotion, settleAt]);
 
     useEffect(() => cancelFrame, [cancelFrame]);
 
@@ -685,6 +759,8 @@ export default function MicroficheViewer({
                 </div>
             </div>
 
+            <div className="fiche-sprockets is-top" aria-hidden="true" />
+            <div className="fiche-sprockets is-bottom" aria-hidden="true" />
             <div className="fiche-lens" aria-hidden="true" />
         </div>
     );

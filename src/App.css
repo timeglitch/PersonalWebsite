@@ -177,21 +177,11 @@
   flex-direction: column;
   border: 1px solid var(--ink);
   background: #d5cfbd;
-  box-shadow: 8px 9px 0 rgba(32, 31, 26, 0.12);
+  /* Cut into the page, not laid on it. An offset drop shadow read as a card
+     sitting on the paper; a hairline of catch-light along the bottom is what
+     the far lip of a recess does instead. */
+  box-shadow: 0 1px 0 rgba(255, 253, 246, 0.85);
 }
-.viewer-chrome {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  padding: 7px 9px;
-  border-bottom: 1px solid var(--ink);
-  font-family: "Space Mono", monospace;
-  font-size: 8px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.viewer-chrome span:last-child { text-align: right; }
-.transport { color: var(--red); letter-spacing: 0.3em; }
 .visually-hidden {
   position: absolute;
   width: 1px;
