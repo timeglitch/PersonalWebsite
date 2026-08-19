@@ -11,11 +11,27 @@ function App() {
      * it — which a state value that does not change cannot express.
      */
     const [focusToken, setFocusToken] = useState(0);
+    /** Latched once the opening key press has happened. */
+    const [engaged, setEngaged] = useState(false);
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [soundOn, setSoundOn] = useState(() =>
         window.matchMedia("(min-width: 901px)").matches,
     );
     const activeProject = projects[activeIndex];
+
+    /**
+     * The site presses its own first key on load. The sheet is parked off its
+     * mark until this fires, so the travel that answers is the same move a
+     * visitor's own click makes — which is the point: it shows that the index
+     * drives the sheet, rather than leaving the opening drift unexplained.
+     */
+    useEffect(() => {
+        const timer = window.setTimeout(() => {
+            setEngaged(true);
+            setFocusToken((token) => token + 1);
+        }, 340);
+        return () => window.clearTimeout(timer);
+    }, []);
 
     useEffect(() => {
         const desktopQuery = window.matchMedia("(min-width: 901px)");
@@ -69,7 +85,7 @@ function App() {
                         {projects.map((project, index) => (
                             <li
                                 key={project.id}
-                                className={index === activeIndex ? "active" : ""}
+                                className={index === activeIndex && engaged ? "active" : ""}
                                 style={{ zIndex: index + 1 }}
                             >
                                 <span className="key-shadow" aria-hidden="true" />

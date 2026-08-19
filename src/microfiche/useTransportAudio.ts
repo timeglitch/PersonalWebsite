@@ -32,6 +32,8 @@ const LOCK_GAIN = 0.4;
  * loses a few inaudible milliseconds that way, but the 6ms contact transient
  * loses its entire envelope — which is why the click was sometimes only a thud.
  */
+/** How long a sound waiting on a resume stays worth playing. */
+const STALE_SOUND_MS = 250;
 const LOCK_LEAD = 0.012;
 
 export function useTransportAudio(enabled: boolean): Transport {
@@ -42,13 +44,37 @@ export function useTransportAudio(enabled: boolean): Transport {
     const enabledRef = useRef(enabled);
     enabledRef.current = enabled;
 
-    const getContext = useCallback(() => {
+    /**
+     * Runs `use` against a context whose clock is actually advancing. A
+     * suspended context's clock is frozen, so anything scheduled against it
+     * lands on the same instant and fires as one blast when it wakes — an
+     * opening travel's worth of ramps arriving together.
+     *
+     * Resuming is asynchronous, though, and the gesture that wakes the context
+     * is usually the same one asking for a sound, so the work is deferred onto
+     * the resume rather than dropped. Before any gesture `resume()` simply
+     * never settles, and that pending call must not fire its sound into
+     * whatever the visitor eventually clicks — so a request that has outlived
+     * the moment it belonged to is discarded.
+     */
+    const withContext = useCallback((use: (context: AudioContext) => void) => {
         if (!contextRef.current) {
             contextRef.current = new AudioContext();
         }
         const context = contextRef.current;
-        if (context.state === "suspended") void context.resume();
-        return context;
+        if (context.state === "running") {
+            use(context);
+            return;
+        }
+        const asked = performance.now();
+        void context.resume().then(
+            () => {
+                if (context.state !== "running") return;
+                if (performance.now() - asked > STALE_SOUND_MS) return;
+                use(context);
+            },
+            () => {},
+        );
     }, []);
 
     const getNoise = useCallback((context: AudioContext) => {
@@ -93,30 +119,33 @@ export function useTransportAudio(enabled: boolean): Transport {
 
     const start = useCallback(() => {
         if (!enabledRef.current || textureRef.current) return;
-        const context = getContext();
+        withContext((context) => {
+            // A second start can slip in while the resume is still settling.
+            if (textureRef.current) return;
 
-        const source = context.createBufferSource();
-        source.buffer = getNoise(context);
-        source.loop = true;
+            const source = context.createBufferSource();
+            source.buffer = getNoise(context);
+            source.loop = true;
 
-        // A narrow band around the drive motor, plus a little rumble underneath.
-        const band = context.createBiquadFilter();
-        band.type = "bandpass";
-        band.frequency.value = 340;
-        band.Q.value = 1.4;
+            // A narrow band around the drive motor, plus a little rumble underneath.
+            const band = context.createBiquadFilter();
+            band.type = "bandpass";
+            band.frequency.value = 340;
+            band.Q.value = 1.4;
 
-        const shelf = context.createBiquadFilter();
-        shelf.type = "lowshelf";
-        shelf.frequency.value = 180;
-        shelf.gain.value = 6;
+            const shelf = context.createBiquadFilter();
+            shelf.type = "lowshelf";
+            shelf.frequency.value = 180;
+            shelf.gain.value = 6;
 
-        const gain = context.createGain();
-        gain.gain.value = 0;
+            const gain = context.createGain();
+            gain.gain.value = 0;
 
-        source.connect(band).connect(shelf).connect(gain).connect(context.destination);
-        source.start();
-        textureRef.current = { source, gain };
-    }, [getContext, getNoise]);
+            source.connect(band).connect(shelf).connect(gain).connect(context.destination);
+            source.start();
+            textureRef.current = { source, gain };
+        });
+    }, [withContext, getNoise]);
 
     const setIntensity = useCallback((value: number) => {
         const texture = textureRef.current;
@@ -131,57 +160,58 @@ export function useTransportAudio(enabled: boolean): Transport {
 
     const lock = useCallback(() => {
         if (!enabledRef.current) return;
-        const context = getContext();
-        const now = context.currentTime + LOCK_LEAD;
-        const buffer = getClickNoise(context);
+        withContext((context) => {
+            const now = context.currentTime + LOCK_LEAD;
+            const buffer = getClickNoise(context);
 
-        // One wobble and one level for the whole click. Varying each transient
-        // separately swung the balance between contact and body, so the same
-        // sound came out as a click on one press and a thud on the next.
-        const spread = (amount: number) => 1 + (Math.random() * 2 - 1) * amount;
-        const wobble = spread(0.025);
-        const level = spread(0.05);
+            // One wobble and one level for the whole click. Varying each transient
+            // separately swung the balance between contact and body, so the same
+            // sound came out as a click on one press and a thud on the next.
+            const spread = (amount: number) => 1 + (Math.random() * 2 - 1) * amount;
+            const wobble = spread(0.025);
+            const level = spread(0.05);
 
-        /** One filtered noise transient with an exponential decay. */
-        const hit = (
-            at: number,
-            type: BiquadFilterType,
-            frequency: number,
-            q: number,
-            peak: number,
-            decay: number,
-        ) => {
-            const source = context.createBufferSource();
-            source.buffer = buffer;
-            const filter = context.createBiquadFilter();
-            filter.type = type;
-            filter.frequency.value = frequency * wobble;
-            filter.Q.value = q;
-            const gain = context.createGain();
-            gain.gain.setValueAtTime(peak * level * LOCK_GAIN, at);
-            gain.gain.exponentialRampToValueAtTime(0.0001, at + decay);
-            source.connect(filter).connect(gain).connect(context.destination);
-            source.start(at);
-            source.stop(at + decay + 0.01);
-        };
+            /** One filtered noise transient with an exponential decay. */
+            const hit = (
+                at: number,
+                type: BiquadFilterType,
+                frequency: number,
+                q: number,
+                peak: number,
+                decay: number,
+            ) => {
+                const source = context.createBufferSource();
+                source.buffer = buffer;
+                const filter = context.createBiquadFilter();
+                filter.type = type;
+                filter.frequency.value = frequency * wobble;
+                filter.Q.value = q;
+                const gain = context.createGain();
+                gain.gain.setValueAtTime(peak * level * LOCK_GAIN, at);
+                gain.gain.exponentialRampToValueAtTime(0.0001, at + decay);
+                source.connect(filter).connect(gain).connect(context.destination);
+                source.start(at);
+                source.stop(at + decay + 0.01);
+            };
 
-        hit(now, "highpass", 1900, 0.6, 0.2, 0.006); // contact
-        hit(now, "lowpass", 240, 8, 1, 0.07); // body
-        hit(now + 0.026 * spread(0.08), "lowpass", 190, 6, 0.5, 0.055); // seating
-    }, [getClickNoise, getContext]);
+            hit(now, "highpass", 1900, 0.6, 0.2, 0.006); // contact
+            hit(now, "lowpass", 240, 8, 1, 0.07); // body
+            hit(now + 0.026 * spread(0.08), "lowpass", 190, 6, 0.5, 0.055); // seating
+            });
+        }, [getClickNoise, withContext]);
 
-    // Turning sound off mid-travel should silence the texture immediately.
-    useEffect(() => {
-        if (!enabled) stop();
-    }, [enabled, stop]);
+        // Turning sound off mid-travel should silence the texture immediately.
+        useEffect(() => {
+            if (!enabled) stop();
+        }, [enabled, stop]);
 
-    useEffect(() => {
-        return () => {
-            stop();
-            void contextRef.current?.close();
-            contextRef.current = null;
-        };
-    }, [stop]);
+        useEffect(() => {
+            return () => {
+                stop();
+                void contextRef.current?.close();
+                contextRef.current = null;
+            };
+        }, [stop]);
 
-    return { start, setIntensity, stop, lock };
-}
+        return { start, setIntensity, stop, lock };
+    }

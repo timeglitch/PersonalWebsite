@@ -38,12 +38,14 @@ const MAX_ZOOM = 2.2;
 
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 const easeOut = (t: number) => 1 - (1 - t) ** 3;
-/** The opening travel's own curve. A cubic tail spends its last half-second
- *  covering a couple of pixels, which reads as the sheet sticking rather than
- *  landing; a square one decelerates evenly and still arrives at a standstill. */
-const easeHome = (t: number) => 1 - (1 - t) ** 2;
-/** How far off its mark the sheet parks before the opening travel, in units. */
-const ENTRY_OFFSET = { x: 2.6, y: 1.6 };
+/**
+ * How far off its mark the sheet parks before the opening travel, in units.
+ * This is what sets the opening's length: travelTo derives its duration from
+ * the distance it has to cover, so parking further away is the only way to buy
+ * a longer arrival. Roughly the largest offset that still clears the sheet's
+ * edges — beyond this the view clamps and the extra distance is discarded.
+ */
+const ENTRY_OFFSET = { x: 16.6, y: 15.4 };
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const lerpView = (from: View, to: View, t: number): View => ({
     x: from.x + (to.x - from.x) * t,
@@ -140,9 +142,6 @@ export default function MicroficheViewer({
         sheet.style.transform =
             `translate3d(${width / 2}px, ${height / 2}px, 0) scale(${zoom}) ` +
             `translate3d(${-x * SHEET.unit}px, ${-y * SHEET.unit}px, 0)`;
-        // The perforations ride the film's horizontal offset, so the edge
-        // streams past whenever the sheet does.
-        stageRef.current?.style.setProperty("--sprocket-x", `${-x * SHEET.unit * zoom}px`);
     }, []);
 
     /** Directional blur + contrast, driven by how fast the sheet is moving on screen. */
@@ -330,9 +329,9 @@ export default function MicroficheViewer({
                     y: clusters[index].focus.y,
                     zoom: sheetZoom(),
                 });
-                // Park off the opening frame; the entry travel below brings it
-                // home, so the first thing the sheet does is move.
-                entryRef.current = opening;
+                // Park off the opening frame. The index presses its first key
+                // once we are ready, and the travel that answers brings the
+                // sheet home — the same move any other key makes.
                 // Reduced motion never parks: the jump home would be the only
                 // thing it saw, which is worse than opening where it belongs.
                 if (reducedMotionRef.current) {
@@ -383,47 +382,6 @@ export default function MicroficheViewer({
         }
         travelRef.current(activeRef.current);
     }, [focusToken, ready]);
-
-    /**
-     * The opening travel. The sheet starts off its mark and pans home, so the
-     * first thing anyone sees is the film moving — a cursor only advertises the
-     * drag once the pointer is already over the sheet, and this reaches someone
-     * who never goes near it. Skipped if anything else already owns the frame,
-     * so it can never fight a click made before it starts.
-     */
-    const entryRef = useRef<View | null>(null);
-    const enteredRef = useRef(false);
-    useEffect(() => {
-        if (!ready || enteredRef.current) return;
-        enteredRef.current = true;
-        const target = entryRef.current;
-        if (!target) return;
-        if (reducedMotionRef.current) {
-            settleAt(target);
-            return;
-        }
-        const timer = window.setTimeout(() => {
-            if (frameRef.current !== null) return;
-            const from = { ...viewRef.current };
-            let previous = from;
-            tween(
-                1600,
-                easeHome,
-                (eased) => {
-                    const next = lerpView(from, target, eased);
-                    viewRef.current = next;
-                    applyView();
-                    applyMotion(
-                        (next.x - previous.x) * SHEET.unit * next.zoom,
-                        (next.y - previous.y) * SHEET.unit * next.zoom,
-                    );
-                    previous = next;
-                },
-                () => settleAt(target),
-            );
-        }, 340);
-        return () => window.clearTimeout(timer);
-    }, [ready, tween, applyView, applyMotion, settleAt]);
 
     useEffect(() => cancelFrame, [cancelFrame]);
 
@@ -759,8 +717,6 @@ export default function MicroficheViewer({
                 </div>
             </div>
 
-            <div className="fiche-sprockets is-top" aria-hidden="true" />
-            <div className="fiche-sprockets is-bottom" aria-hidden="true" />
             <div className="fiche-lens" aria-hidden="true" />
         </div>
     );

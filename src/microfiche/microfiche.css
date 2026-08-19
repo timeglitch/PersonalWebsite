@@ -3,8 +3,6 @@
 
 .fiche-window {
   --unit: 100px;
-  /* Height of the perforated band at each edge — the film gate. */
-  --gate: 14px;
   --fiche-film: #23201a;
   --fiche-paper: #e3d7b8;
   --fiche-paper-dim: #cdc09e;
@@ -122,40 +120,11 @@
 
 
 /* Lens: a soft vignette and a hint of a circular optic. */
-/* ── Film edge ────────────────────────────────────────────────────────────
-   Perforations along the top and bottom of the window, borrowed from a
-   microfilm reel: the sheet itself is a flat fiche with no sprockets, but the
-   edge is what says "this is a transport" before anyone touches it, and it is
-   the only signifier that works on a pointer that never comes near the sheet.
-
-   Fixed chrome on the window, never paint on the sheet, so it is exempt from
-   the tiling cost that made the mottling a baked image — one 14px strip
-   repaints per frame instead of the whole exposed area. `--sprocket-x` is
-   written by applyView, so the holes stream with the film. */
-.fiche-sprockets {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: var(--gate);
-  pointer-events: none;
-  background-color: #191610;
-  background-image:
-    repeating-linear-gradient(90deg,
-      transparent 0 15px,
-      rgba(227, 215, 184, 0.34) 15px 26px,
-      transparent 26px 41px);
-  background-position-x: var(--sprocket-x, 0px);
-}
-.fiche-sprockets.is-top { top: 0; box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.55); }
-.fiche-sprockets.is-bottom { bottom: 0; box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.55); }
-
-/* The aperture: the film sits behind the gate, so the vignette and the recess
-   stop at the perforated bands rather than washing over them. The top wall of
-   the well is the darkest edge, which is what fixes the light overhead and
-   makes the screen read as sunk rather than merely dim. */
+/* The top wall of the well is the darkest edge, which is what fixes the light
+   overhead and makes the screen read as sunk rather than merely dim. */
 .fiche-lens {
   position: absolute;
-  inset: var(--gate) 0;
+  inset: 0;
   pointer-events: none;
   background:
     radial-gradient(ellipse at 50% 46%, transparent 42%, rgba(20, 17, 11, 0.5) 100%);
