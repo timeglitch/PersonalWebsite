@@ -447,6 +447,14 @@ export default function MicroficheViewer({
      * so the cell under the press is remembered here at pointerdown instead.
      */
     const pressedRef = useRef<HTMLElement | null>(null);
+    /** The cell a finger is resting on. Touch has no hover, so the reveal has
+     *  to be asked for; it is dropped the moment the press becomes a drag. */
+    const revealedRef = useRef<HTMLElement | null>(null);
+
+    const clearReveal = useCallback(() => {
+        revealedRef.current?.classList.remove("is-revealed");
+        revealedRef.current = null;
+    }, []);
 
     /**
      * Points the hover loupe at the cursor. Writing the centre repaints one
@@ -500,6 +508,14 @@ export default function MicroficheViewer({
         drag.lastTime = performance.now();
         drag.vx = drag.vy = 0;
         pressedRef.current = event.target as HTMLElement;
+        if (event.pointerType !== "mouse") {
+            const cell = (event.target as HTMLElement).closest(".fiche-cell");
+            if (cell instanceof HTMLElement) {
+                aimLoupe(event.clientX, event.clientY, event.target as HTMLElement);
+                cell.classList.add("is-revealed");
+                revealedRef.current = cell;
+            }
+        }
         // Stop the browser starting a text selection before the drag threshold
         // is crossed. Links keep their default so they still activate.
         if (!(event.target as HTMLElement).closest("a")) {
@@ -513,6 +529,7 @@ export default function MicroficheViewer({
     const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
         const drag = dragRef.current;
         if (!drag.moved) aimLoupe(event.clientX, event.clientY, event.target as HTMLElement);
+        else clearReveal();
         if (!drag.active || event.pointerId !== drag.pointerId) return;
 
         const dx = event.clientX - drag.lastX;
@@ -712,6 +729,7 @@ export default function MicroficheViewer({
 
         const target = pressedRef.current ?? (event.target as HTMLElement);
         pressedRef.current = null;
+        clearReveal();
         const cellNode = target.closest<HTMLElement>("[data-cell]");
         if (!cellNode) return;
         const cell = cells.find((entry) => entry.id === cellNode.dataset.cell);

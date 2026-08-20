@@ -291,7 +291,8 @@
 }
 .fiche-duotone.is-contain .fiche-colour { object-fit: contain; object-position: center; }
 
-.fiche-window:not(:active) .fiche-cell:hover .fiche-colour {
+.fiche-window:not(:active) .fiche-cell:hover .fiche-colour,
+.fiche-cell.is-revealed .fiche-colour {
   opacity: 1;
   --loupe-r: var(--reveal-reach);
   filter: blur(0px);
@@ -303,7 +304,8 @@
     transform var(--reveal-open) ease-out var(--reveal-dwell);
 }
 /* Lift the archival dimming on the same clock, so the card wakes as one thing. */
-.fiche-window:not(:active) .fiche-cell:hover {
+.fiche-window:not(:active) .fiche-cell:hover,
+.fiche-cell.is-revealed {
   filter: none;
   transition: filter var(--reveal-in) ease-in var(--reveal-dwell);
 }

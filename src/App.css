@@ -224,7 +224,7 @@ footer a:hover { color: var(--red); }
 @media (max-width: 900px) {
   .portfolio-shell { padding: 14px 16px 24px; }
   /* Monogram, links, sound — three cells, or the third wraps to a second row. */
-  .masthead { grid-template-columns: auto 1fr auto; gap: 12px; }
+  .masthead { grid-template-columns: auto 1fr auto; gap: 12px; padding-left: max(18px, env(safe-area-inset-left)); padding-right: max(18px, env(safe-area-inset-right)); }
   .masthead p { display: none; }
   /* The label is what makes the toggle wide; the icon already says which way
      it is set, and the button keeps its name for anything reading the page. */
@@ -274,8 +274,8 @@ footer a:hover { color: var(--red); }
 
   .index-toggle { display: inline-block;
     position: absolute;
-    right: 18px;
-    bottom: 18px;
+    right: max(18px, env(safe-area-inset-right));
+    bottom: max(18px, env(safe-area-inset-bottom));
     z-index: 4;
     padding: 11px 18px;
     border: 1px solid var(--ink);

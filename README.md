@@ -79,6 +79,9 @@ style, so a plain ruled list can reuse `style="record"` and need no CSS.
 
 - **Mobile.** The viewer is desktop-only; below 900px the sheet is hidden and
   the projects fall back to a stacked list.
+- **Landscape phones.** Treated as portrait turned sideways. The masthead takes
+  45px of a 390px viewport, leaving a 13.5 x 5.5 unit letterbox, and the index
+  drawer scrolls in 343px. Both want landscape handled as its own case.
 - **A signifier at rest.** Nothing says the sheet is draggable once the opening
   travel has finished. Perforated edge strips did the job and were removed for
   being ugly; the replacement should look better, and could tick or otherwise
