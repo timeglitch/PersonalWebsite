@@ -19,7 +19,7 @@ narrowest desktop column, longer names ellipsize.
 
 ## The microfiche viewer
 
-The desktop layout is a contact sheet of film seen through a lens.
+A contact sheet of film seen through a lens, on every screen size.
 [MICROFICHE_PLAN.md](MICROFICHE_PLAN.md) has the design brief.
 
 ```
@@ -36,8 +36,27 @@ public/microfiche/
   archive/                    hand-placed images and baked textures
 ```
 
-Everything sits at a fixed coordinate on one sheet, 1 unit = 100px. The viewer
-moves a lens over it at a single fixed magnification; nothing zooms.
+Everything sits at a fixed coordinate on one sheet. The viewer moves a lens
+over it; nothing zooms while you use it.
+
+A unit is 100px, except on a screen whose **shorter side** is under 640px, where
+it halves. Cell boxes scale with the unit while the type inside them is absolute
+px, so halving it fits a frame onto a phone and renders that type larger rather
+than smaller. `unitRef` in `MicroficheViewer.tsx` is the value in force and is
+written to the stylesheet's `--unit`; every camera calculation asks it, not
+`SHEET.unit`.
+
+Magnification is chosen three ways. Above 900px the lens fits the median cluster.
+Below it the screen is bound by whichever way it is short — upright by a cell's
+width, on its side by a hero and the clipping beneath it — and takes the smaller
+of the two. The two thresholds are deliberately different: a tablet held upright
+is narrow enough to be scanned but wide enough to keep the full unit.
+
+Below 900px the film is the whole page. `.portfolio-shell` goes `position:
+fixed`, which leaves nothing in flow and so nothing to scroll — that is what lets
+the sheet keep `touch-action: none` without stealing a scroll. The index slides
+over the film from a corner button. Touch has no hover, so a press reveals a
+frame's colour and a pan drops it again.
 
 Keyboard: arrows pan the lens (Shift for faster, two at once for a diagonal),
 Page Up / Page Down — or `[` / `]` — step between projects, Home re-frames the
@@ -77,8 +96,6 @@ style, so a plain ruled list can reuse `style="record"` and need no CSS.
 
 ## Next
 
-- **Mobile.** The viewer is desktop-only; below 900px the sheet is hidden and
-  the projects fall back to a stacked list.
 - **Landscape phones.** Treated as portrait turned sideways. The masthead takes
   45px of a 390px viewport, leaving a 13.5 x 5.5 unit letterbox, and the index
   drawer scrolls in 343px. Both want landscape handled as its own case.
@@ -91,12 +108,21 @@ style, so a plain ruled list can reuse `style="record"` and need no CSS.
 - **GitHub, LinkedIn and résumé as tiles** on the sheet, rather than only as
   links in the intro.
 - **New projects and photos.**
+- **Small ones.** The footer email is 8px and uppercased, which is the least
+  legible treatment on the page for the one string a visitor may need to read.
+  `role="application"` on the viewer is what lets arrow keys through to the
+  sheet under a screen reader, at the cost of normal reading — undecided.
 
 ## Don't change
 
 `npm run capture` steps the parking chart back to the last month its collector
 populated (it stopped in April 2026) and waits a long time for the satellite
 globe to draw — don't shorten those.
+
+Sound never schedules into a suspended `AudioContext`. A suspended context's
+clock is frozen, so events pile onto one instant and fire together as a blast
+when it wakes. `withContext` defers work onto the resume and discards anything
+that outlived the moment it belonged to. Don't bypass it.
 
 The sheet is far too large to hold as one texture, so the browser rasterises it
 in tiles on demand. Anything painted across it costs frames while panning, which
