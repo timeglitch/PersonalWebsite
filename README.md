@@ -39,6 +39,10 @@ public/microfiche/
 Everything sits at a fixed coordinate on one sheet, 1 unit = 100px. The viewer
 moves a lens over it at a single fixed magnification; nothing zooms.
 
+Keyboard: arrows pan the lens (Shift for faster, two at once for a diagonal),
+Page Up / Page Down — or `[` / `]` — step between projects, Home re-frames the
+active one, Enter opens its live site.
+
 ## Adding a cell
 
 1. Put images in `public/microfiche/archive/`. **Not** `captures/` — `npm run
@@ -75,8 +79,6 @@ style, so a plain ruled list can reuse `style="record"` and need no CSS.
 
 - **Mobile.** The viewer is desktop-only; below 900px the sheet is hidden and
   the projects fall back to a stacked list.
-- **Keyboard.** Arrows step between projects and Enter opens the live site, but
-  the lens itself cannot be panned.
 - **A signifier at rest.** Nothing says the sheet is draggable once the opening
   travel has finished. Perforated edge strips did the job and were removed for
   being ugly; the replacement should look better, and could tick or otherwise

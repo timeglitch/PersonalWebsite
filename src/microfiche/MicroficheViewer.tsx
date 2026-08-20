@@ -36,6 +36,17 @@ const SHEET_BLEED = 3;
 const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 2.2;
 
+/** Keyboard pan speed across the lens in screen px/s, and Shift's multiplier. */
+const PAN_SPEED = 900;
+const PAN_BOOST = 2.6;
+/** Time constants, in ms, for the pan velocity chasing the keys held down:
+ *  the lens leans into a move over one and drifts out of it over the other. */
+const PAN_ACCEL = 140;
+const PAN_COAST = 230;
+/** Units/ms below which a coast is finished. The drag's inertia floor. */
+const PAN_FLOOR = 0.0006;
+const PAN_KEYS = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]);
+
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 const easeOut = (t: number) => 1 - (1 - t) ** 3;
 /**
@@ -445,6 +456,7 @@ export default function MicroficheViewer({
     const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
         if (event.button !== 0) return;
         cancelFrame();
+        cancelPan();
         transport.stop();
         const drag = dragRef.current;
         drag.active = true;
@@ -458,7 +470,12 @@ export default function MicroficheViewer({
         pressedRef.current = event.target as HTMLElement;
         // Stop the browser starting a text selection before the drag threshold
         // is crossed. Links keep their default so they still activate.
-        if (!(event.target as HTMLElement).closest("a")) event.preventDefault();
+        if (!(event.target as HTMLElement).closest("a")) {
+            event.preventDefault();
+            // preventDefault also suppresses the focus the click would have
+            // given, and the viewer is an application region worth landing on.
+            event.currentTarget.focus({ preventScroll: true });
+        }
     };
 
     const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -571,6 +588,86 @@ export default function MicroficheViewer({
     };
 
     /**
+     * The arrow keys held right now and the velocity they are steering. The
+     * velocity chases the direction rather than matching it, so one number
+     * covers both the lean into a pan and the drift out of it on release.
+     */
+    const panRef = useRef({
+        keys: new Set<string>(),
+        fast: false,
+        vx: 0,
+        vy: 0,
+        last: 0,
+        active: false,
+    });
+
+    /** Hand the frame to a travel or a drag without settling on the way out. */
+    const cancelPan = useCallback(() => {
+        const pan = panRef.current;
+        pan.keys.clear();
+        pan.vx = pan.vy = 0;
+        pan.active = false;
+    }, []);
+
+    /**
+     * Open-ended, so it cannot run through `tween`; it still owns `frameRef`
+     * alone and ends the way a drag does, at `comeToRest`.
+     */
+    const runPan = useCallback(() => {
+        const pan = panRef.current;
+        pan.active = true;
+        pan.last = performance.now();
+
+        const step = (now: number) => {
+            const dt = Math.min(34, now - pan.last);
+            pan.last = now;
+
+            const { zoom } = viewRef.current;
+            const dirX = (pan.keys.has("ArrowRight") ? 1 : 0) - (pan.keys.has("ArrowLeft") ? 1 : 0);
+            const dirY = (pan.keys.has("ArrowDown") ? 1 : 0) - (pan.keys.has("ArrowUp") ? 1 : 0);
+            // Otherwise a diagonal would run √2 faster than either axis alone.
+            const spread = dirX && dirY ? Math.SQRT1_2 : 1;
+            const perMs = (PAN_SPEED * (pan.fast ? PAN_BOOST : 1)) / (SHEET.unit * zoom * 1000);
+            const held = dirX !== 0 || dirY !== 0;
+            // Reduced motion keeps the pan and drops the ramp: full speed while
+            // a key is down, stopped on the frame it comes up.
+            const chase = reducedMotionRef.current
+                ? 1
+                : 1 - Math.exp(-dt / (held ? PAN_ACCEL : PAN_COAST));
+            pan.vx += (dirX * spread * perMs - pan.vx) * chase;
+            pan.vy += (dirY * spread * perMs - pan.vy) * chase;
+
+            viewRef.current = clampView(
+                {
+                    ...viewRef.current,
+                    x: viewRef.current.x + pan.vx * dt,
+                    y: viewRef.current.y + pan.vy * dt,
+                },
+                0.18,
+            );
+            applyView();
+
+            const screenVx = pan.vx * dt * SHEET.unit * zoom;
+            const screenVy = pan.vy * dt * SHEET.unit * zoom;
+            const speed = Math.hypot(screenVx, screenVy);
+            if (!reducedMotionRef.current) applyMotion(screenVx, screenVy);
+            transport.setIntensity(clamp(speed / 30, 0, 1));
+
+            if (held || Math.hypot(pan.vx, pan.vy) > PAN_FLOOR) {
+                frameRef.current = requestAnimationFrame(step);
+                return;
+            }
+            frameRef.current = null;
+            pan.active = false;
+            clearMotion();
+            transport.stop();
+            comeToRest();
+        };
+
+        frameRef.current = requestAnimationFrame(step);
+    }, [applyMotion, applyView, clampView, clearMotion, comeToRest, transport]);
+
+    /**
      * A click only counts when the pointer stayed put. Clicking the centred
      * primary capture opens the live site; anything else centres its project.
      */
@@ -647,24 +744,80 @@ export default function MicroficheViewer({
         };
     }, [applyMotion, applyView, cancelFrame, clampView, clearMotion, comeToRest, transport]);
 
-    const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-        const step = (delta: number) => {
-            event.preventDefault();
-            const next = (activeIndex + delta + projects.length) % projects.length;
-            onActiveChange(next);
-            travelTo(next);
+    /**
+     * Keys are answered on the document, not on the window element. The
+     * pointerdown handler suppresses the browser's default focus so that a drag
+     * cannot begin a text selection, so an element-level listener would only
+     * ever fire for someone who arrived by Tab — which is to say almost nobody.
+     */
+    useEffect(() => {
+        const stage = stageRef.current;
+        if (!stage) return;
+
+        const onKeyDown = (event: KeyboardEvent) => {
+            // Hidden below 901px, where the sheet is replaced by a plain list.
+            if (stage.offsetParent === null) return;
+            // Anything being typed into owns its own arrow keys.
+            const target = event.target as HTMLElement | null;
+            if (target?.closest("input, textarea, select, [contenteditable]")) return;
+
+            const pan = panRef.current;
+            pan.fast = event.shiftKey;
+            // Every other modifier combination belongs to the browser.
+            if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+            const step = (delta: number) => {
+                event.preventDefault();
+                cancelPan();
+                const next = (activeIndex + delta + projects.length) % projects.length;
+                onActiveChange(next);
+                travelTo(next);
+            };
+
+            if (PAN_KEYS.has(event.key)) {
+                event.preventDefault();
+                pan.keys.add(event.key);
+                if (pan.active) return;
+                cancelFrame();
+                transport.start();
+                runPan();
+            } else if (event.key === "PageDown" || event.key === "]") step(1);
+            else if (event.key === "PageUp" || event.key === "[") step(-1);
+            else if (event.key === "Home") {
+                event.preventDefault();
+                cancelPan();
+                travelTo(activeIndex);
+            } else if (event.key === "Enter") {
+                // A focused control answers Enter itself; the sheet only takes
+                // it when nothing else is holding focus.
+                if (target?.closest("a, button, [role='button']")) return;
+                const url = projects[activeIndex].url;
+                if (url) {
+                    event.preventDefault();
+                    window.open(url, "_blank", "noopener,noreferrer");
+                }
+            }
         };
 
-        if (event.key === "ArrowRight" || event.key === "ArrowDown") step(1);
-        else if (event.key === "ArrowLeft" || event.key === "ArrowUp") step(-1);
-        else if (event.key === "Enter") {
-            const url = projects[activeIndex].url;
-            if (url) {
-                event.preventDefault();
-                window.open(url, "_blank", "noopener,noreferrer");
-            }
-        }
-    };
+        const onKeyUp = (event: KeyboardEvent) => {
+            panRef.current.fast = event.shiftKey;
+            panRef.current.keys.delete(event.key);
+        };
+
+        /** A key let go after focus has left never reports, so nothing stays held. */
+        const releaseAll = () => {
+            panRef.current.keys.clear();
+        };
+
+        document.addEventListener("keydown", onKeyDown);
+        document.addEventListener("keyup", onKeyUp);
+        window.addEventListener("blur", releaseAll);
+        return () => {
+            document.removeEventListener("keydown", onKeyDown);
+            document.removeEventListener("keyup", onKeyUp);
+            window.removeEventListener("blur", releaseAll);
+        };
+    }, [activeIndex, onActiveChange, travelTo, cancelPan, cancelFrame, runPan, transport]);
 
     const activeProjectId = projects[activeIndex].id;
     // Hovering the project that is already centred has nothing to point at.
@@ -677,14 +830,13 @@ export default function MicroficheViewer({
             ref={stageRef}
             role="application"
             aria-roledescription="Microfiche viewer"
-            aria-label={`Microfiche sheet, showing ${projects[activeIndex].name}. Use arrow keys to move between projects.`}
+            aria-label={`Microfiche sheet, showing ${projects[activeIndex].name}. Arrow keys pan the sheet; Page Up and Page Down move between projects; Home re-frames this one.`}
             tabIndex={0}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={endDrag}
             onPointerCancel={endDrag}
             onClick={onClick}
-            onKeyDown={onKeyDown}
         >
             {/* Directional blur, driven from the animation loop. */}
             <svg className="fiche-filter" aria-hidden="true" focusable="false">

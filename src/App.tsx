@@ -66,7 +66,7 @@ function App() {
                     <section className="intro" id="top" aria-labelledby="page-title">
                         <h1 id="page-title">Frank<br />Zhang</h1>
                         <div className="intro-copy">
-                            <p className="eyebrow">Software engineer · Bay Area, CA</p>
+                            <p className="eyebrow">Bay Area, California</p>
                             <p className="dek">I write software to solve problems.</p>
                             <nav className="contact-links" aria-label="External links">
                                 <a href="https://docs.google.com/document/d/1Ngmw-ZuhaUzupvgZQvM-1YMePI2_ZzQVlHGfEHZp_2Q/edit?usp=sharing" target="_blank" rel="noreferrer">Résumé ↗</a>
@@ -95,7 +95,17 @@ function App() {
                                     onMouseEnter={() => setHoveredIndex(index)}
                                     onFocus={() => setHoveredIndex(index)}
                                     onBlur={() => setHoveredIndex(null)}
-                                    onClick={() => {
+                                    onClick={(event) => {
+                                        // A second Enter on the key already held
+                                        // down opens the project. Only from the
+                                        // keyboard — a mouse click on the active
+                                        // key still re-frames the sheet, which is
+                                        // how you get back after dragging away.
+                                        // A keyboard-driven click reports no count.
+                                        if (event.detail === 0 && index === activeIndex && project.url) {
+                                            window.open(project.url, "_blank", "noopener,noreferrer");
+                                            return;
+                                        }
                                         setActiveIndex(index);
                                         setFocusToken((token) => token + 1);
                                     }}

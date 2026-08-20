@@ -260,7 +260,12 @@ export default function SheetCell({ cell, project, active, hinted }: Props) {
             {cell.kind === "capture" && (
                 <figure className="fiche-capture">
                     <span className={`fiche-duotone ${cell.fit === "contain" ? "is-contain" : ""}`}>
-                        <img src={cell.src} alt={cell.label} draggable={false} loading="lazy" />
+                        {/* The figcaption below prints cell.label as real text, and
+                            the project's name, role and description are already on
+                            the page — so every frame here is decoration over copy a
+                            reader has anyway. An empty alt is passed over silently;
+                            repeating the label would only say it twice. */}
+                        <img src={cell.src} alt="" draggable={false} loading="lazy" />
                         {/* The same frame, untreated, sitting above the two-colour
                             process. Resting at zero opacity, it costs nothing until
                             a hover fades it up — and opacity is composited rather
