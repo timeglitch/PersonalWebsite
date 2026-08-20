@@ -695,3 +695,12 @@
   .fiche-open { transition: none; }
   .fiche-film.has-motion { filter: none; }
 }
+
+/* ── Narrow film ──────────────────────────────────────────────────────────
+   At the halved unit a cell box is half as wide in px while its type is
+   absolute, so anything set for the full-width box overflows. Prose is the
+   only thing with enough of it to matter: one column instead of two, and a
+   headline that no longer has to hold a 700px measure. */
+.fiche-window.is-narrow .fiche-clipping h4 { font-size: 13px; padding-bottom: 3px; }
+.fiche-window.is-narrow .fiche-columns { columns: 1; column-rule: 0; }
+.fiche-window.is-narrow .fiche-columns p { font-size: 6px; line-height: 1.5; }

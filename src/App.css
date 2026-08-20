@@ -21,6 +21,7 @@
   letter-spacing: 0.1em;
 }
 .masthead p { margin: 0; }
+.masthead-links { display: none; }
 .monogram {
   justify-self: start;
   width: 29px;
@@ -75,6 +76,7 @@
   text-transform: uppercase;
 }
 .eyebrow { font-size: 12px; }
+.index-toggle { display: none; }
 .dek {
   max-width: 570px;
   margin: 10px 0 20px;
@@ -221,14 +223,74 @@ footer a:hover { color: var(--red); }
 
 @media (max-width: 900px) {
   .portfolio-shell { padding: 14px 16px 24px; }
-  .masthead { grid-template-columns: 1fr 1fr; }
+  /* Monogram, links, sound — three cells, or the third wraps to a second row. */
+  .masthead { grid-template-columns: auto 1fr auto; gap: 12px; }
   .masthead p { display: none; }
+  /* The label is what makes the toggle wide; the icon already says which way
+     it is set, and the button keeps its name for anything reading the page. */
+  .sound-toggle .sound-label { display: none; }
+  .masthead-links { display: flex; gap: 14px; justify-content: flex-end; }
+  .masthead-links a { color: var(--ink); text-decoration: none; }
+  .masthead-links a:active { color: var(--red); }
   .intro { min-height: auto; display: block; padding: 48px 0 46px; }
   .intro h1 { font-size: clamp(76px, 25vw, 150px); line-height: 0.75; }
   .intro-copy { max-width: 610px; margin: 50px 0 0; padding: 0; }
   .dek { font-size: 19px; max-width: 520px; }
-  .desktop-layout { display: block; min-height: auto; padding: 0 0 64px; }
-  .left-column { display: block; }
+  /* On a phone the film is the page. Nothing scrolls behind it, which is what
+     lets the sheet keep `touch-action: none` without stealing the gesture that
+     would have scrolled — there is nothing left to scroll. */
+  .portfolio-shell { position: fixed; inset: 0; padding: 0; display: flex; flex-direction: column; }
+  .masthead { flex: 0 0 auto; padding: 7px 18px; margin: 0; }
+  .desktop-layout { position: relative; flex: 1; min-height: 0; display: block; padding: 0; }
+  .project-viewer { position: absolute; inset: 0; height: auto; margin: 0; border: 0; }
+
+  /* The index rides over the film rather than sitting under it. */
+  .left-column {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    max-height: 88%;
+    overflow-y: auto;
+    /* Opened to get somewhere, so the index comes first and the masthead's
+       monogram carries identity until you scroll down for it. */
+    display: flex;
+    flex-direction: column;
+    overscroll-behavior: contain;
+    padding: 4px 18px 26px;
+    background: var(--paper);
+    border-top: 1px solid var(--ink);
+    box-shadow: 0 -14px 34px rgba(32, 31, 26, 0.22);
+    transform: translateY(101%);
+    transition: transform 280ms cubic-bezier(.2,.7,.1,1);
+  }
+  .left-column.is-open { transform: translateY(0); }
+  .left-column > .project-index { order: 1; }
+  .left-column > .intro { order: 2; margin-top: 34px; }
+  .left-column .intro h1 { font-size: clamp(44px, 13vw, 72px); }
+  /* Clear of the toggle resting in the corner. */
+  .left-column > :last-child { padding-bottom: 58px; }
+
+  .index-toggle { display: inline-block;
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    z-index: 4;
+    padding: 11px 18px;
+    border: 1px solid var(--ink);
+    border-radius: 3px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Space Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    box-shadow: 0 3px 10px rgba(32, 31, 26, 0.3);
+  }
+  /* Stays put between states: it is the same control, and the thumb that
+     opened it is already there. */
+  footer { display: none; }
   .project-index button { grid-template-columns: 28px 1fr auto; padding: 18px 0 13px; cursor: default; }
   .project-coordinate { display: none; }
   .project-name { font-size: clamp(22px, 6vw, 38px); }
@@ -239,7 +301,8 @@ footer a:hover { color: var(--red); }
     font-size: 13px;
     line-height: 1.55;
   }
-  .project-viewer { display: none; }
+  /* The sheet is the site on a phone too: a small window scanned across a
+     large surface, rather than a list of what the projects are. */
 }
 
 @media (max-width: 480px) {

@@ -45,6 +45,17 @@ const PAN_ACCEL = 140;
 const PAN_COAST = 230;
 /** Units/ms below which a coast is finished. The drag's inertia floor. */
 const PAN_FLOOR = 0.0006;
+/** Stage width below which the sheet is scanned rather than framed. Matches the
+ *  stylesheet's 900px breakpoint: below it the film is the whole page. */
+const SCAN_WIDTH = 900;
+/** Leaves the framed block clear of the window's edges. */
+const SCAN_FILL = 0.94;
+/** A window whose short side is under this cannot hold a frame at full size,
+ *  whichever way it is turned — a phone on its side is as cramped vertically as
+ *  upright it is horizontally. A tablet clears it in both orientations. */
+const NARROW_SIDE = 640;
+const WIDEST_FRAMED = Math.max(...cells.filter((cell) => cell.framed).map((cell) => cell.w));
+const TALLEST_FRAME = Math.max(...clusters.map(({ frame }) => frame.h));
 const PAN_KEYS = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]);
 
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
@@ -79,6 +90,13 @@ export default function MicroficheViewer({
     const blurRef = useRef<SVGFEGaussianBlurElement>(null);
 
     const viewRef = useRef<View>({ x: 0, y: 0, zoom: 0.5 });
+    /**
+     * Pixels per sheet unit. Cell boxes are proportional to this while the type
+     * inside them is absolute, so halving it and letting the zoom grow back
+     * makes a cell narrow enough for a portrait phone while rendering its type
+     * larger, not smaller. Kept in step with the stylesheet's --unit.
+     */
+    const unitRef = useRef<number>(SHEET.unit);
     const sizeRef = useRef({ width: 0, height: 0 });
     const frameRef = useRef<number | null>(null);
     /** The index the viewer itself last settled on, so its own snaps don't re-trigger travel. */
@@ -114,9 +132,19 @@ export default function MicroficheViewer({
     const sheetZoom = useCallback(() => {
         const { width, height } = sizeRef.current;
         if (!width || !height) return 0.5;
+        // Small screens are bound by whichever way they are short: upright by
+        // the width of a cell, on their side by the height of a hero and the
+        // clipping beneath it. Taking the smaller of the two keeps both in
+        // frame, and the halved unit keeps the type legible while it does.
+        if (width < SCAN_WIDTH) {
+            const unit = unitRef.current;
+            return (
+                Math.min(width / (WIDEST_FRAMED * unit), height / (TALLEST_FRAME * unit)) * SCAN_FILL
+            );
+        }
         const wanted = clusters
             .map(({ frame }) =>
-                Math.min(width / (frame.w * SHEET.unit), height / (frame.h * SHEET.unit)),
+                Math.min(width / (frame.w * unitRef.current), height / (frame.h * unitRef.current)),
             )
             .sort((a, b) => a - b);
         const median = wanted[Math.floor(wanted.length / 2)];
@@ -126,8 +154,8 @@ export default function MicroficheViewer({
     /** Keep the lens over the sheet; `softness` allows rubber-banding while dragging. */
     const clampView = useCallback((view: View, softness = 0): View => {
         const { width, height } = sizeRef.current;
-        const halfW = width / (2 * view.zoom * SHEET.unit);
-        const halfH = height / (2 * view.zoom * SHEET.unit);
+        const halfW = width / (2 * view.zoom * unitRef.current);
+        const halfH = height / (2 * view.zoom * unitRef.current);
 
         const limit = (value: number, half: number, extent: number) => {
             const min = half - SHEET_BLEED;
@@ -152,7 +180,7 @@ export default function MicroficheViewer({
         const { width, height } = sizeRef.current;
         sheet.style.transform =
             `translate3d(${width / 2}px, ${height / 2}px, 0) scale(${zoom}) ` +
-            `translate3d(${-x * SHEET.unit}px, ${-y * SHEET.unit}px, 0)`;
+            `translate3d(${-x * unitRef.current}px, ${-y * unitRef.current}px, 0)`;
     }, []);
 
     /** Directional blur + contrast, driven by how fast the sheet is moving on screen. */
@@ -270,8 +298,8 @@ export default function MicroficheViewer({
                     viewRef.current = next;
                     applyView();
                     const speed = applyMotion(
-                        (next.x - previous.x) * SHEET.unit * next.zoom,
-                        (next.y - previous.y) * SHEET.unit * next.zoom,
+                        (next.x - previous.x) * unitRef.current * next.zoom,
+                        (next.y - previous.y) * unitRef.current * next.zoom,
                     );
                     previous = next;
                     if (!options.silent) {
@@ -333,6 +361,10 @@ export default function MicroficheViewer({
             const box = entries[0].contentRect;
             const first = sizeRef.current.width === 0;
             sizeRef.current = { width: box.width, height: box.height };
+            const narrow = Math.min(box.width, box.height) < NARROW_SIDE;
+            unitRef.current = narrow ? SHEET.unit / 2 : SHEET.unit;
+            stage.style.setProperty("--unit", `${unitRef.current}px`);
+            stage.classList.toggle("is-narrow", narrow);
             if (first) {
                 const index = settledRef.current;
                 const opening = clampView({
@@ -505,8 +537,8 @@ export default function MicroficheViewer({
             viewRef.current = clampView(
                 {
                     ...viewRef.current,
-                    x: viewRef.current.x - dx / (SHEET.unit * zoom),
-                    y: viewRef.current.y - dy / (SHEET.unit * zoom),
+                    x: viewRef.current.x - dx / (unitRef.current * zoom),
+                    y: viewRef.current.y - dy / (unitRef.current * zoom),
                 },
                 0.32,
             );
@@ -531,8 +563,8 @@ export default function MicroficheViewer({
         // releasing would otherwise fling at the last speed recorded. Fade it
         // out by how long the pointer sat idle.
         const freshness = clamp(1 - (performance.now() - drag.lastTime) / 140, 0, 1);
-        let vx = (-drag.vx * freshness) / (SHEET.unit * zoom);
-        let vy = (-drag.vy * freshness) / (SHEET.unit * zoom);
+        let vx = (-drag.vx * freshness) / (unitRef.current * zoom);
+        let vy = (-drag.vy * freshness) / (unitRef.current * zoom);
 
         if (reducedMotionRef.current || Math.hypot(vx, vy) < 0.0006) {
             transport.stop();
@@ -558,8 +590,8 @@ export default function MicroficheViewer({
             );
             applyView();
 
-            const screenVx = vx * dt * SHEET.unit * viewRef.current.zoom;
-            const screenVy = vy * dt * SHEET.unit * viewRef.current.zoom;
+            const screenVx = vx * dt * unitRef.current * viewRef.current.zoom;
+            const screenVy = vy * dt * unitRef.current * viewRef.current.zoom;
             const speed = applyMotion(screenVx, screenVy);
             transport.setIntensity(clamp(speed / 30, 0, 1));
 
@@ -627,7 +659,7 @@ export default function MicroficheViewer({
             const dirY = (pan.keys.has("ArrowDown") ? 1 : 0) - (pan.keys.has("ArrowUp") ? 1 : 0);
             // Otherwise a diagonal would run √2 faster than either axis alone.
             const spread = dirX && dirY ? Math.SQRT1_2 : 1;
-            const perMs = (PAN_SPEED * (pan.fast ? PAN_BOOST : 1)) / (SHEET.unit * zoom * 1000);
+            const perMs = (PAN_SPEED * (pan.fast ? PAN_BOOST : 1)) / (unitRef.current * zoom * 1000);
             const held = dirX !== 0 || dirY !== 0;
             // Reduced motion keeps the pan and drops the ramp: full speed while
             // a key is down, stopped on the frame it comes up.
@@ -647,8 +679,8 @@ export default function MicroficheViewer({
             );
             applyView();
 
-            const screenVx = pan.vx * dt * SHEET.unit * zoom;
-            const screenVy = pan.vy * dt * SHEET.unit * zoom;
+            const screenVx = pan.vx * dt * unitRef.current * zoom;
+            const screenVy = pan.vy * dt * unitRef.current * zoom;
             const speed = Math.hypot(screenVx, screenVy);
             if (!reducedMotionRef.current) applyMotion(screenVx, screenVy);
             transport.setIntensity(clamp(speed / 30, 0, 1));
@@ -719,8 +751,8 @@ export default function MicroficheViewer({
             viewRef.current = clampView(
                 {
                     ...viewRef.current,
-                    x: viewRef.current.x + event.deltaX / (SHEET.unit * zoom),
-                    y: viewRef.current.y + event.deltaY / (SHEET.unit * zoom),
+                    x: viewRef.current.x + event.deltaX / (unitRef.current * zoom),
+                    y: viewRef.current.y + event.deltaY / (unitRef.current * zoom),
                 },
                 0.22,
             );

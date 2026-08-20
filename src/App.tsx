@@ -3,6 +3,12 @@ import "./App.css";
 import { MicroficheViewer, clusters } from "./microfiche";
 import { projects } from "./projects";
 
+const LINKS = [
+    { label: "Résumé", href: "https://docs.google.com/document/d/1Ngmw-ZuhaUzupvgZQvM-1YMePI2_ZzQVlHGfEHZp_2Q/edit?usp=sharing" },
+    { label: "LinkedIn", href: "https://www.linkedin.com/in/frankjzhang/" },
+    { label: "GitHub", href: "https://github.com/timeglitch" },
+];
+
 function App() {
     const [activeIndex, setActiveIndex] = useState(0);
     /**
@@ -13,10 +19,10 @@ function App() {
     const [focusToken, setFocusToken] = useState(0);
     /** Latched once the opening key press has happened. */
     const [engaged, setEngaged] = useState(false);
+    /** Phones give the whole screen to the film; the index slides over it. */
+    const [indexOpen, setIndexOpen] = useState(false);
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-    const [soundOn, setSoundOn] = useState(() =>
-        window.matchMedia("(min-width: 901px)").matches,
-    );
+    const [soundOn, setSoundOn] = useState(true);
     const activeProject = projects[activeIndex];
 
     /**
@@ -33,45 +39,54 @@ function App() {
         return () => window.clearTimeout(timer);
     }, []);
 
-    useEffect(() => {
-        const desktopQuery = window.matchMedia("(min-width: 901px)");
-        const syncSoundWithViewport = (event: MediaQueryListEvent) => {
-            setSoundOn(event.matches);
-        };
-
-        desktopQuery.addEventListener("change", syncSoundWithViewport);
-        return () => {
-            desktopQuery.removeEventListener("change", syncSoundWithViewport);
-        };
-    }, []);
-
     return (
         <main className="portfolio-shell">
             <header className="masthead">
                 <a className="monogram" href="#top" aria-label="Frank Zhang, home">FZ</a>
                 <p>Things I&apos;ve Built</p>
+                {/* The masthead is empty on a phone and the drawer is a scroll
+                    away, so the links sit where they are always reachable. */}
+                <nav className="masthead-links" aria-label="External links">
+                    {LINKS.map((link) => (
+                        <a key={link.href} href={link.href} target="_blank" rel="noreferrer">
+                            {link.label}
+                        </a>
+                    ))}
+                </nav>
                 <button
                     className={`sound-toggle ${soundOn ? "is-on" : ""}`}
                     type="button"
                     aria-pressed={soundOn}
+                    aria-label={`Sound ${soundOn ? "on" : "off"}`}
                     onClick={() => setSoundOn((value) => !value)}
                 >
                     <span aria-hidden="true">{soundOn ? "◖))" : "◖×"}</span>
-                    Sound {soundOn ? "on" : "off"}
+                    <span className="sound-label">Sound {soundOn ? "on" : "off"}</span>
                 </button>
             </header>
 
+            <button
+                className={`index-toggle ${indexOpen ? "is-open" : ""}`}
+                type="button"
+                aria-expanded={indexOpen}
+                onClick={() => setIndexOpen((open) => !open)}
+            >
+                {indexOpen ? "Close" : "Index"}
+            </button>
+
             <div className="desktop-layout">
-                <div className="left-column">
+                <div className={`left-column ${indexOpen ? "is-open" : ""}`}>
                     <section className="intro" id="top" aria-labelledby="page-title">
                         <h1 id="page-title">Frank<br />Zhang</h1>
                         <div className="intro-copy">
                             <p className="eyebrow">Bay Area, California</p>
                             <p className="dek">I write software to solve problems.</p>
                             <nav className="contact-links" aria-label="External links">
-                                <a href="https://docs.google.com/document/d/1Ngmw-ZuhaUzupvgZQvM-1YMePI2_ZzQVlHGfEHZp_2Q/edit?usp=sharing" target="_blank" rel="noreferrer">Résumé ↗</a>
-                                <a href="https://www.linkedin.com/in/frankjzhang/" target="_blank" rel="noreferrer">LinkedIn ↗</a>
-                                <a href="https://github.com/timeglitch" target="_blank" rel="noreferrer">GitHub ↗</a>
+                                {LINKS.map((link) => (
+                                    <a key={link.href} href={link.href} target="_blank" rel="noreferrer">
+                                        {link.label} ↗
+                                    </a>
+                                ))}
                             </nav>
                         </div>
                     </section>
@@ -108,6 +123,7 @@ function App() {
                                         }
                                         setActiveIndex(index);
                                         setFocusToken((token) => token + 1);
+                                        setIndexOpen(false);
                                     }}
                                     aria-label={`Show ${project.name}`}
                                     aria-current={index === activeIndex}
