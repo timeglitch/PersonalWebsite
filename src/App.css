@@ -344,9 +344,14 @@
     /* Room for the keys' shadow plates, which an overflow box would clip. */
     padding: 14px;
     margin: -14px;
-    scrollbar-width: none;
+    /* A hairline in ink, like the page's rules, rather than the system bar;
+       it only appears on windows too short for the column to fit. */
+    scrollbar-width: thin;
+    scrollbar-color: var(--ink) transparent;
   }
-  .left-column::-webkit-scrollbar { display: none; }
+  .left-column::-webkit-scrollbar { width: 3px; }
+  .left-column::-webkit-scrollbar-thumb { background: var(--ink); border-radius: 2px; }
+  .left-column::-webkit-scrollbar-track { background: transparent; }
   /* Sizes the one-line name below against the column, not the window. */
   .left-column { container-type: inline-size; }
   .left-column.has-more {
