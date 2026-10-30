@@ -725,3 +725,9 @@
 .fiche-window.is-narrow .fiche-clipping h4 { font-size: 13px; padding-bottom: 3px; }
 .fiche-window.is-narrow .fiche-columns { columns: 1; column-rule: 0; }
 .fiche-window.is-narrow .fiche-columns p { font-size: 6px; line-height: 1.5; }
+/* A single column needs more height than the cell's units give it, and whatever
+   doesn't fit spills into a hidden second column. Let the card grow to its text. */
+.fiche-window.is-narrow .fiche-cell:has(.fiche-clipping) { height: auto !important; }
+/* The Asset System plate sits close under its card, so that card rises to make room. */
+.fiche-window.is-narrow [data-cell="ast-clip"] { margin-top: calc(var(--unit) * -0.5); }
+.fiche-window.is-narrow [data-cell="ast-clip"] h4 { font-size: 11px; }
