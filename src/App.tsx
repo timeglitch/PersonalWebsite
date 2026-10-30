@@ -7,7 +7,12 @@ const LINKS = [
     { label: "Résumé", href: "https://docs.google.com/document/d/1Ngmw-ZuhaUzupvgZQvM-1YMePI2_ZzQVlHGfEHZp_2Q/edit?usp=sharing" },
     { label: "LinkedIn", href: "https://www.linkedin.com/in/frankjzhang/" },
     { label: "GitHub", href: "https://github.com/timeglitch" },
+    { label: "Email", href: "mailto:me@frankzhang.org" },
 ];
+
+/** Sites open in a new tab and say so; the mail link hands off to the mail app. */
+const linkProps = (href: string) =>
+    href.startsWith("mailto:") ? {} : { target: "_blank", rel: "noreferrer" };
 
 function App() {
     const [activeIndex, setActiveIndex] = useState(0);
@@ -43,26 +48,15 @@ function App() {
         <main className="portfolio-shell">
             <header className="masthead">
                 <a className="monogram" href="#top" aria-label="Frank Zhang, home">FZ</a>
-                <p>Things I&apos;ve Built</p>
                 {/* The masthead is empty on a phone and the drawer is a scroll
                     away, so the links sit where they are always reachable. */}
                 <nav className="masthead-links" aria-label="External links">
                     {LINKS.map((link) => (
-                        <a key={link.href} href={link.href} target="_blank" rel="noreferrer">
+                        <a key={link.href} href={link.href} {...linkProps(link.href)}>
                             {link.label}
                         </a>
                     ))}
                 </nav>
-                <button
-                    className={`sound-toggle ${soundOn ? "is-on" : ""}`}
-                    type="button"
-                    aria-pressed={soundOn}
-                    aria-label={`Sound ${soundOn ? "on" : "off"}`}
-                    onClick={() => setSoundOn((value) => !value)}
-                >
-                    <span aria-hidden="true">{soundOn ? "◖))" : "◖×"}</span>
-                    <span className="sound-label">Sound {soundOn ? "on" : "off"}</span>
-                </button>
             </header>
 
             <button
@@ -88,8 +82,9 @@ function App() {
                         column's slack falls between the tagline and the links. */}
                     <nav className="contact-links" aria-label="External links">
                         {LINKS.map((link) => (
-                            <a key={link.href} href={link.href} target="_blank" rel="noreferrer">
-                                {link.label} ↗
+                            <a key={link.href} href={link.href} {...linkProps(link.href)}>
+                                {link.label}
+                                {link.href.startsWith("mailto:") ? "" : " ↗"}
                             </a>
                         ))}
                     </nav>
@@ -160,6 +155,18 @@ function App() {
                         soundOn={soundOn}
                     />
 
+                    {/* On the reader rather than in the page chrome: the sound is
+                        the film moving, so its switch sits with the film. */}
+                    <button
+                        className={`sound-toggle ${soundOn ? "is-on" : ""}`}
+                        type="button"
+                        aria-pressed={soundOn}
+                        aria-label={`Sound ${soundOn ? "on" : "off"}`}
+                        onClick={() => setSoundOn((value) => !value)}
+                    >
+                        <span aria-hidden="true">{soundOn ? "◖))" : "◖×"}</span>
+                    </button>
+
                     {/* The sheet itself prints the name, dates and description, so
                         the caption exists only for screen readers. */}
                     <p className="visually-hidden">
@@ -169,10 +176,6 @@ function App() {
                 </article>
             </div>
 
-            <footer>
-                <span>Frank Zhang © {new Date().getFullYear()}</span>
-                <a href="mailto:me@frankzhang.org">Contact me@frankzhang.org</a>
-            </footer>
         </main>
     );
 }

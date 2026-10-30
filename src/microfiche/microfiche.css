@@ -166,7 +166,7 @@
 .fiche-marks span {
   position: absolute;
   padding: 5px 0 0 7px;
-  font-family: "Syne Mono", var(--fiche-mono);
+  font-family: "Major Mono Display", var(--fiche-mono);
   font-size: 20px;
   line-height: 1;
   letter-spacing: 0.02em;

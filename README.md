@@ -111,9 +111,7 @@ style, so a plain ruled list can reuse `style="record"` and need no CSS.
 - **GitHub, LinkedIn and résumé as tiles** on the sheet, rather than only as
   links in the intro.
 - **New projects and photos.**
-- **Small ones.** The footer email is 8px and uppercased, which is the least
-  legible treatment on the page for the one string a visitor may need to read.
-  `role="application"` on the viewer is what lets arrow keys through to the
+- **Small ones.** `role="application"` on the viewer is what lets arrow keys through to the
   sheet under a screen reader, at the cost of normal reading — undecided.
 
 ## Don't change
