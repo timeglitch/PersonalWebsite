@@ -69,9 +69,22 @@ function App() {
     return (
         <main className="portfolio-shell">
             <header className="masthead">
-                <a className="monogram" href="#top" aria-label="Frank Zhang, home">FZ</a>
-                {/* The masthead is empty on a phone and the drawer is a scroll
-                    away, so the links sit where they are always reachable. */}
+                {/* Home is the About entry. A link to the intro would go nowhere
+                    here: on a phone the intro is inside the closed drawer. */}
+                <button
+                    className="monogram"
+                    type="button"
+                    aria-label="Frank Zhang, about me"
+                    onClick={() => {
+                        setActiveIndex(0);
+                        setFocusToken((token) => token + 1);
+                        setIndexOpen(false);
+                    }}
+                >
+                    FZ
+                </button>
+                {/* The intro sits in the drawer on a phone, so its links are
+                    repeated here where they are always reachable. */}
                 <nav className="masthead-links" aria-label="External links">
                     {LINKS.map((link) => (
                         <a key={link.href} href={link.href} {...linkProps(link.href)}>

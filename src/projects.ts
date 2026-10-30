@@ -28,7 +28,7 @@ export const projects: Project[] = [
         id: "about",
         name: "About me",
         year: "",
-        dates: "San Jose, CA",
+        dates: "Bay Area, CA",
         role: "IT · Systems · Software",
         description:
             "IT support engineer at 1X Technologies, previously a system administrator at the Center for High Throughput Computing. Studied Computer Sciences and Linguistics at UW–Madison.",

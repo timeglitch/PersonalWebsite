@@ -31,6 +31,9 @@
   place-items: center;
   color: var(--paper);
   background: var(--ink);
+  border: 0;
+  padding: 0;
+  cursor: pointer;
   text-decoration: none;
   letter-spacing: -0.12em;
 }

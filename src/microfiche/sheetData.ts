@@ -625,7 +625,8 @@ export function coordinateAt(x: number, y: number): string {
 
 /**
  * Room a printed coordinate takes in its square's corner, in units — sized for
- * the halved unit, where the fixed-size type is largest relative to the sheet.
+ * the halved unit, where the fixed-size type is largest relative to the sheet,
+ * and for the 20px type `.fiche-marks span` sets. Change that and change this.
  */
 const MARK_BOX = { w: 1.1, h: 0.55 };
 

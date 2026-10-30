@@ -55,6 +55,22 @@ width, on its side by a hero and the clipping beneath it — and takes the small
 of the two. The two thresholds are deliberately different: a tablet held upright
 is narrow enough to be scanned but wide enough to keep the full unit.
 
+Above 900px the page is exactly the window and never scrolls: no masthead or
+footer, just the left column and the film. The film sizes itself to whatever it
+gets; the left column is fitted. The name is bound by height as well as width,
+the space under the tagline is the first thing a short window takes back, and
+at 680px tall or less the name drops to one line, sized to the column with a
+container query. On windows shorter than about 560px the column still
+overflows, and then scrolls inside itself behind a bottom fade and a thin ink
+scrollbar. Change any of those sizes and check 1366×768, 1280×720 and 1000×600.
+
+The sound switch sits on the film's top-right corner at every size, because the
+sound is the film moving. Phones keep a masthead for the monogram and links.
+
+The grid coordinates printed on the film (`.fiche-marks`, from `gridMarks` in
+`sheetData.ts`) are dropped wherever a cell would cover them. `MARK_BOX` is the
+room one takes, sized for their 20px type: change the type and change it too.
+
 Below 900px the film is the whole page. `.portfolio-shell` goes `position:
 fixed`, which leaves nothing in flow and so nothing to scroll — that is what lets
 the sheet keep `touch-action: none` without stealing a scroll. The index slides
