@@ -81,19 +81,22 @@ function App() {
                         <div className="intro-copy">
                             <p className="eyebrow">Bay Area, California</p>
                             <p className="dek">I write software to solve problems.</p>
-                            <nav className="contact-links" aria-label="External links">
-                                {LINKS.map((link) => (
-                                    <a key={link.href} href={link.href} target="_blank" rel="noreferrer">
-                                        {link.label} ↗
-                                    </a>
-                                ))}
-                            </nav>
                         </div>
                     </section>
 
+                    {/* Set just above the index rather than under the intro, so the
+                        column's slack falls between the tagline and the links. */}
+                    <nav className="contact-links" aria-label="External links">
+                        {LINKS.map((link) => (
+                            <a key={link.href} href={link.href} target="_blank" rel="noreferrer">
+                                {link.label} ↗
+                            </a>
+                        ))}
+                    </nav>
+
                     <section className="project-index" aria-labelledby="work-title">
                     <div className="section-rule">
-                        <h2 id="work-title">Projects</h2>
+                        <h2 id="work-title" className="visually-hidden">Index</h2>
                         <span>{String(projects.length).padStart(2, "0")} entries</span>
                     </div>
                     <ol onMouseLeave={() => setHoveredIndex(null)}>
@@ -128,7 +131,7 @@ function App() {
                                     aria-label={`Show ${project.name}`}
                                     aria-current={index === activeIndex}
                                 >
-                                    <span className="project-number">{String(index + 1).padStart(2, "0")}</span>
+                                    <span className="project-number">{String(index).padStart(2, "0")}</span>
                                     <span className="project-name">{project.name}</span>
                                     <span className="project-coordinate" aria-hidden="true">{clusters[index].coordinate}</span>
                                     <span className="project-year">{project.year}</span>
@@ -138,9 +141,9 @@ function App() {
                                     <p>{project.description}</p>
                                     {project.url ? (
                                         <a href={project.url} target="_blank" rel="noreferrer">Visit project ↗</a>
-                                    ) : (
+                                    ) : project.restricted ? (
                                         <p className="project-restricted">Private project / documentation on request</p>
-                                    )}
+                                    ) : null}
                                 </article>
                             </li>
                         ))}
@@ -161,7 +164,7 @@ function App() {
                         the caption exists only for screen readers. */}
                     <p className="visually-hidden">
                         {activeProject.name}. {activeProject.role}. {activeProject.description}{" "}
-                        {activeProject.url ?? "Private project, documentation on request."}
+                        {activeProject.url ?? (activeProject.restricted ? "Private project, documentation on request." : "")}
                     </p>
                 </article>
             </div>

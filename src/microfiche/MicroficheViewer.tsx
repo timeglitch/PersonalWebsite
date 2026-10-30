@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import SheetCell from "./SheetCell";
 import { projects, type ProjectId } from "../projects";
-import { cells, clusters, nearestClusterIndex, SHEET } from "./sheetData";
+import { cells, clusters, gridMarks, nearestClusterIndex, SHEET } from "./sheetData";
 import { useTransportAudio } from "./useTransportAudio";
 import "./microfiche.css";
 
@@ -913,6 +913,21 @@ export default function MicroficheViewer({
                     }}
                 >
                     <div className="fiche-grid" aria-hidden="true" />
+                    {/* Each ruled square's coordinate, so the index's B7 can be
+                        read off the film. Cells print over them. */}
+                    <div className="fiche-marks" aria-hidden="true">
+                        {gridMarks.map((mark) => (
+                            <span
+                                key={mark.label}
+                                style={{
+                                    left: `calc(var(--unit) * ${mark.x})`,
+                                    top: `calc(var(--unit) * ${mark.y})`,
+                                }}
+                            >
+                                {mark.label}
+                            </span>
+                        ))}
+                    </div>
                     {cells.map((cell) => (
                         <SheetCell
                             key={cell.id}

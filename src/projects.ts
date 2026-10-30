@@ -1,12 +1,13 @@
 /**
- * The portfolio's content: the projects themselves.
+ * The portfolio's content: the projects themselves, led by an entry about the
+ * author. That entry is index 0, so it is numbered 00 and is where the site opens.
  *
  * This is the site's source of truth about the work, independent of how any
  * one view chooses to present it. The microfiche sheet consumes it; a future
  * list, print stylesheet or feed could consume the same thing.
  */
 
-export type ProjectId = "vocalize" | "parking" | "satellite" | "balalaika" | "assets";
+export type ProjectId = "about" | "vocalize" | "parking" | "satellite" | "balalaika" | "assets";
 
 export type Project = {
     id: ProjectId;
@@ -23,6 +24,16 @@ export type Project = {
 };
 
 export const projects: Project[] = [
+    {
+        id: "about",
+        name: "About me",
+        year: "",
+        dates: "San Jose, CA",
+        role: "IT · Systems · Software",
+        description:
+            "IT support engineer at 1X Technologies, previously a system administrator at the Center for High Throughput Computing. Studied Computer Sciences and Linguistics at UW–Madison.",
+        archive: "FZ·ABT·2026",
+    },
     {
         id: "vocalize",
         name: "Vocalize",

@@ -118,7 +118,7 @@
   display: flex;
   flex-direction: column;
 }
-.project-index { margin-top: auto; }
+.left-column > .contact-links { margin-top: auto; padding-top: 28px; margin-bottom: 26px; }
 .section-rule {
   display: flex;
   justify-content: space-between;
@@ -268,6 +268,7 @@ footer a:hover { color: var(--red); }
   .left-column.is-open { transform: translateY(0); }
   .left-column > .project-index { order: 1; }
   .left-column > .intro { order: 2; margin-top: 34px; }
+  .left-column > .contact-links { order: 3; margin: 0; padding-top: 24px; }
   .left-column .intro h1 { font-size: clamp(44px, 13vw, 72px); }
   /* Clear of the toggle resting in the corner. */
   .left-column > :last-child { padding-bottom: 58px; }

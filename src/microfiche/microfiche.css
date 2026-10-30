@@ -154,6 +154,25 @@
   filter: brightness(0.92);
 }
 
+/* The grid's own coordinates, one per square in its top-left corner. Plain
+   text rather than baked: unlike the rules, no two squares print the same
+   thing, so there is no tile to repeat. Measured at no extra dropped frames
+   across long travels. Tinted like the rules, a little stronger so it reads. */
+.fiche-marks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.fiche-marks span {
+  position: absolute;
+  padding: 5px 0 0 7px;
+  font-family: "Syne Mono", var(--fiche-mono);
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: rgba(227, 215, 184, 0.22);
+}
+
 .fiche-coordinate {
   position: absolute;
   right: 4px;

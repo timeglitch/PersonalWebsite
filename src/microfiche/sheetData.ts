@@ -91,6 +91,63 @@ export const SPANISH_VOWELS = [
 ] as const;
 
 export const cells: Cell[] = [
+    // ── About ── left, between the top and middle rows ─────────────────────
+    // The cluster the site opens on. A portrait rather than a wide capture, so
+    // the clipping sits beside it instead of beneath, which keeps the framed
+    // block no taller than the others and leaves the phone magnification alone.
+    {
+        // Height set so the 3:4 photo fills the image area once the caption
+        // strip is subtracted.
+        id: "abt-portrait",
+        kind: "capture",
+        project: "about",
+        primary: true,
+        framed: true,
+        src: `${ARCHIVE}/frank-portrait.jpg`,
+        label: "frank zhang · at work",
+        x: 2.6, y: 12.2, w: 3.2, h: 4.45,
+    },
+    {
+        id: "abt-clip",
+        kind: "clipping",
+        project: "about",
+        framed: true,
+        headline: "Who made this sheet",
+        body: [
+            "IT support engineer at 1X Technologies, looking after identity, devices and vendors. Before that, a sysadmin at UW–Madison's Center for High Throughput Computing.",
+            "Studied Computer Sciences and Linguistics at UW–Madison, which is how a vowel trainer got onto this sheet.",
+        ],
+        x: 6, y: 12.2, w: 3.4, h: 2.5,
+    },
+    { id: "abt-cover", kind: "cover", project: "about", x: 6.2, y: 14.95, w: 3, h: 1.9, tilt: 0.4 },
+    {
+        id: "abt-cats",
+        kind: "capture",
+        project: "about",
+        src: `${ARCHIVE}/cats-window.jpg`,
+        label: "the cats · on watch",
+        x: 3, y: 16.95, w: 3, h: 2.42, tilt: -0.4,
+    },
+    {
+        id: "abt-record",
+        kind: "plate",
+        project: "about",
+        variant: "inventory",
+        title: "Personnel record",
+        lines: ["STUDIED · CS & LINGUISTICS", "PLAYS · BALALAIKA", "CATS · 2"],
+        x: 6.3, y: 17.1, w: 3.2, h: 1.5,
+    },
+    {
+        // Levels on the CEFR scale, which has no grade for a native speaker.
+        id: "abt-languages",
+        kind: "plate",
+        project: "about",
+        variant: "inventory",
+        title: "Languages · CEFR",
+        lines: ["ENGLISH & CHINESE · NATIVE", "SPANISH · C1", "PORTUGUESE · B2", "TOKI PONA · B1"],
+        x: 2.6, y: 10.1, w: 3.2, h: 1.85, tilt: -0.3,
+    },
+
     // ── Vocalize ── top-left ────────────────────────────────────────────────
     // Every cluster centres on its hero: the primary capture sits in the middle
     // with the rest of the material printed above, below and to either side of
@@ -423,7 +480,7 @@ export const cells: Cell[] = [
         kind: "capture",
         src: `${CAPTURES}/vocalize-nav.jpg`,
         label: "masthead crop",
-        x: 2, y: 9.6, w: 3, h: 1.1,
+        x: 9.9, y: 17.3, w: 3, h: 1.1,
     },
     {
         id: "t-stamp",
@@ -431,7 +488,7 @@ export const cells: Cell[] = [
         variant: "stamp",
         title: "Filmed",
         lines: ["FRAME COMPLETE"],
-        x: 5.6, y: 9.9, w: 2, h: 1.3, tilt: -1.2,
+        x: 24.6, y: 12.6, w: 2, h: 1.3, tilt: -1.2,
     },
     {
         id: "t-blank",
@@ -552,12 +609,49 @@ export type Cluster = {
     coordinate: string;
 };
 
-/** Sheet coordinates run A.. across in 2-unit columns and 1.. down in 2-unit rows. */
+/**
+ * Side of one coordinate square, in units. The film grid's minor rules are
+ * baked at the same spacing (MINOR in scripts/make-film-ground.mjs), which is
+ * what makes each ruled square one coordinate; change both or neither.
+ */
+export const GRID_STEP = 2;
+
+/** Sheet coordinates run A.. across in GRID_STEP columns and 1.. down in GRID_STEP rows. */
 export function coordinateAt(x: number, y: number): string {
-    const column = String.fromCharCode(65 + Math.max(0, Math.floor(x / 2)));
-    const row = Math.max(1, Math.floor(y / 2) + 1);
+    const column = String.fromCharCode(65 + Math.max(0, Math.floor(x / GRID_STEP)));
+    const row = Math.max(1, Math.floor(y / GRID_STEP) + 1);
     return `${column}${row}`;
 }
+
+/**
+ * Room a printed coordinate takes in its square's corner, in units — sized for
+ * the halved unit, where the fixed-size type is largest relative to the sheet.
+ */
+const MARK_BOX = { w: 1.1, h: 0.55 };
+
+/**
+ * Every square on the sheet, by the corner its coordinate is printed in. A
+ * mark a cell would cover even partly is dropped: a fully hidden one is
+ * wasted, and a half-hidden one reads as a clipped scrap.
+ */
+export const gridMarks = Array.from({ length: Math.ceil(SHEET.height / GRID_STEP) }, (_, row) =>
+    Array.from({ length: Math.ceil(SHEET.width / GRID_STEP) }, (_, column) => {
+        const x = column * GRID_STEP;
+        const y = row * GRID_STEP;
+        return { x, y, label: coordinateAt(x, y) };
+    }),
+)
+    .flat()
+    .filter(
+        (mark) =>
+            !cells.some(
+                (cell) =>
+                    cell.x < mark.x + MARK_BOX.w &&
+                    mark.x < cell.x + cell.w &&
+                    cell.y < mark.y + MARK_BOX.h &&
+                    mark.y < cell.y + cell.h,
+            ),
+    );
 
 const boundingBox = (group: Cell[]) => {
     const minX = Math.min(...group.map((c) => c.x));
