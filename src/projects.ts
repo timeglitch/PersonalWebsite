@@ -29,9 +29,9 @@ export const projects: Project[] = [
         name: "About me",
         year: "",
         dates: "Bay Area, CA",
-        role: "IT · Systems · Software",
+        role: "Systems · Software · IT",
         description:
-            "IT support engineer at 1X Technologies, previously a system administrator at the Center for High Throughput Computing. Studied Computer Sciences and Linguistics at UW–Madison.",
+            "Test Engineer at 1X Technologies, previously a system administrator intern at the Center for High Throughput Computing. Studied Computer Sciences and Linguistics at UW–Madison.",
         archive: "FZ·ABT·2026",
     },
     {
@@ -52,7 +52,7 @@ export const projects: Project[] = [
         dates: "2025–2026",
         role: "React · Python",
         description:
-            "A tracker for parking availability at San Jose State University, built with React and a Python backend.",
+            "Plots four San Jose State University garages against time, so a driver can see the shape of a normal Tuesday. A Python collector polls the campus parking status; the front end is React.",
         archive: "FZ·PRK·2025",
         url: "https://timeglitch.github.io/SJSUParkingMonitor/",
     },
@@ -63,7 +63,7 @@ export const projects: Project[] = [
         dates: "2025",
         role: "React · Three.js · Data",
         description:
-            "Visualize interpolated satellite data overlaid on EONET wildfire locations, built with React, Three.js and a serverless proxy.",
+            "Visualize interpolated balloon positions overlaid on EONET wildfire locations, built with React, Three.js and a serverless proxy.",
         archive: "FZ·SAT·2025",
         url: "https://windborne-nu.vercel.app/",
     },
@@ -85,7 +85,7 @@ export const projects: Project[] = [
         dates: "2023",
         role: "Python · Tkinter · Database",
         description:
-            "A graphical user interface for Center for High Throughput Computing assets, built with Python and Tkinter on top of a custom database.",
+            "The Center for High Throughput Computing tracked about 1,000 hosts in bespoke YAML. I built a Tkinter interface to interact with it easily.",
         archive: "FZ·AST·2023",
         restricted: true,
     },

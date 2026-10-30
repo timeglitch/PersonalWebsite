@@ -112,10 +112,10 @@ export const cells: Cell[] = [
         kind: "clipping",
         project: "about",
         framed: true,
-        headline: "Who made this sheet",
+        headline: "About Me",
         body: [
-            "IT support engineer at 1X Technologies, looking after identity, devices and vendors. Before that, a sysadmin at UW–Madison's Center for High Throughput Computing.",
-            "Studied Computer Sciences and Linguistics at UW–Madison, which is how a vowel trainer got onto this sheet.",
+            "Currently, I'm a Test Engineer at 1X Technologies. Before that, I was an IT Support Engineer for Marin Tech Group.",
+            "I studied Computer Sciences and Linguistics at UW–Madison. I was a Systems Administrator Intern at the Center for High Throughput Computing.",
         ],
         x: 6, y: 12.2, w: 3.4, h: 2.5,
     },
@@ -171,9 +171,9 @@ export const cells: Cell[] = [
         headline: "Biofeedback for the vowel",
         body: [
             "A browser listens to a learner speaking Spanish and draws the shape of the sound back at them in real time.",
-            "Formant tracking turns the first and second resonances of the voice into a moving point on a vowel chart.",
+            "Formant tracking turns the first and second resonances of the voice into a moving point on a vowel chart. The chart is rendered with linear predictive coding, tuned for readability.",
         ],
-        x: 5.4, y: 8.1, w: 6.4, h: 0.95,
+        x: 5.4, y: 8.1, w: 6.4, h: 1.25,
     },
     { id: "voc-cover", kind: "cover", project: "vocalize", x: 9.6, y: 1.8, w: 3, h: 1.9, tilt: -0.5 },
     {
@@ -340,9 +340,9 @@ export const cells: Cell[] = [
         kind: "clipping",
         project: "balalaika",
         framed: true,
-        headline: "Folk music, plainly hosted",
+        headline: "A Maintainable Site for Folk Music",
         body: [
-            "The ensemble needed a site that any member could edit without a build step or a framework.",
+            "The ensemble had an ancient website and a stale Facebook page. I made a site that is easy to update for any of the members, without unnecessary dependencies.",
             "Raw HTML, CSS and JavaScript keep the pages legible and the hosting free.",
         ],
         x: 5, y: 27.8, w: 6.4, h: 0.95,
@@ -401,8 +401,8 @@ export const cells: Cell[] = [
         framed: true,
         headline: "Inventory, made clickable",
         body: [
-            "Hardware records for the Center for High Throughput Computing lived in a custom database and a lot of memory.",
-            "A Tkinter front end put check-in, search and history in one window for staff.",
+            "The Center for High Throughput Computing tracked about 1,000 hosts in bespoke YAML.",
+            "I built a Tkinter interface to interact with it easily.",
         ],
         x: 23.6, y: 21.5, w: 3.2, h: 1.2,
     },
@@ -494,7 +494,7 @@ export const cells: Cell[] = [
         id: "t-blank",
         kind: "plate",
         variant: "blank",
-        x: 8.2, y: 9.5, w: 2.1, h: 1.3,
+        x: 8.2, y: 9.9, w: 2.1, h: 1.3,
     },
     {
         id: "t-reference",
@@ -502,7 +502,7 @@ export const cells: Cell[] = [
         variant: "reference",
         title: "Reference card",
         lines: ["REDUCTION 24:1", "POLARITY NEGATIVE", "SHEET 1 OF 1"],
-        x: 11, y: 9.5, w: 2.8, h: 1.8, tilt: 0.5,
+        x: 11, y: 9.9, w: 2.8, h: 1.8, tilt: 0.5,
     },
     {
         id: "t-timestamp",
