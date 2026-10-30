@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import { MicroficheViewer, clusters } from "./microfiche";
 import { projects } from "./projects";
@@ -44,6 +44,28 @@ function App() {
         return () => window.clearTimeout(timer);
     }, []);
 
+    /**
+     * The column scrolls without a scrollbar, so a fade along its bottom edge
+     * says there is more. Only while there is: at rest at the end, or on a
+     * window tall enough to show everything, the edge stays crisp.
+     */
+    const columnRef = useRef<HTMLDivElement>(null);
+    const [columnHasMore, setColumnHasMore] = useState(false);
+    useEffect(() => {
+        const column = columnRef.current;
+        if (!column) return;
+        const measure = () =>
+            setColumnHasMore(column.scrollTop + column.clientHeight < column.scrollHeight - 1);
+        measure();
+        column.addEventListener("scroll", measure, { passive: true });
+        const observer = new ResizeObserver(measure);
+        observer.observe(column);
+        return () => {
+            column.removeEventListener("scroll", measure);
+            observer.disconnect();
+        };
+    }, []);
+
     return (
         <main className="portfolio-shell">
             <header className="masthead">
@@ -69,9 +91,12 @@ function App() {
             </button>
 
             <div className="desktop-layout">
-                <div className={`left-column ${indexOpen ? "is-open" : ""}`}>
+                <div
+                    ref={columnRef}
+                    className={`left-column ${indexOpen ? "is-open" : ""} ${columnHasMore ? "has-more" : ""}`}
+                >
                     <section className="intro" id="top" aria-labelledby="page-title">
-                        <h1 id="page-title">Frank<br />Zhang</h1>
+                        <h1 id="page-title">Frank<br /> Zhang</h1>
                         <div className="intro-copy">
                             <p className="eyebrow">Bay Area, California</p>
                             <p className="dek">I write software to solve problems.</p>

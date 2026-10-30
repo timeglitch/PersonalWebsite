@@ -64,14 +64,15 @@
   margin: 0;
   width: max-content;
   font-family: "Newsreader", Georgia, serif;
-  font-size: clamp(76px, 8.6vw, 130px);
+  /* Bound by height as well as width, so a short wide window shrinks it. */
+  font-size: clamp(56px, min(8.6vw, 14vh), 130px);
   line-height: 0.72;
   letter-spacing: -0.075em;
   font-weight: 700;
 }
 .intro-copy {
   max-width: 610px;
-  margin-top: 28px;
+  margin-top: clamp(14px, 3.1vh, 28px);
   padding: 0;
 }
 .eyebrow, .project-role {
@@ -87,7 +88,9 @@
 .index-toggle { display: none; }
 .dek {
   max-width: 570px;
-  margin: 10px 0 20px;
+  /* No margin below: the column's slack sits under the tagline, and it is
+     the first thing a short window takes back. */
+  margin: 10px 0 0;
   font-size: clamp(16px, 1.25vw, 20px);
   line-height: 1.4;
   letter-spacing: -0.025em;
@@ -116,18 +119,17 @@
 }
 
 .desktop-layout {
-  min-height: calc(100vh - 40px); /* the shell's top and bottom padding */
   display: grid;
   grid-template-columns: minmax(330px, 0.52fr) minmax(650px, 1.48fr);
   gap: clamp(28px, 3.4vw, 58px);
-  padding: 28px 0 18px;
+  padding-block: clamp(10px, 2.2vh, 20px);
 }
 .left-column {
   min-width: 0;
   display: flex;
   flex-direction: column;
 }
-.left-column > .contact-links { margin-top: auto; padding-top: 28px; margin-bottom: 26px; }
+.left-column > .contact-links { margin-top: auto; padding-top: clamp(14px, 5vh, 48px); margin-bottom: clamp(14px, 2.9vh, 26px); }
 .section-rule {
   display: flex;
   justify-content: space-between;
@@ -213,7 +215,7 @@
   }
 
   .intro h1 {
-    font-size: clamp(76px, 9.7vw, 107px);
+    font-size: clamp(56px, min(9.7vw, 14vh), 107px);
   }
 }
 
@@ -322,6 +324,35 @@
    retracts it from the right as the key tips, which reads as the gap closing.
 */
 @media (min-width: 901px) {
+  /* App shell: the page is exactly the window and never scrolls. The film
+     sizes itself to whatever it is given; the left column is fitted by the
+     height-bound sizes above, and on a window too short even for those it
+     scrolls inside itself rather than taking the page with it. */
+  .portfolio-shell {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .desktop-layout { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+  .left-column {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* Room for the keys' shadow plates, which an overflow box would clip. */
+    padding: 14px;
+    margin: -14px;
+    scrollbar-width: none;
+  }
+  .left-column::-webkit-scrollbar { display: none; }
+  /* Sizes the one-line name below against the column, not the window. */
+  .left-column { container-type: inline-size; }
+  .left-column.has-more {
+    -webkit-mask-image: linear-gradient(#000 calc(100% - 56px), transparent);
+    mask-image: linear-gradient(#000 calc(100% - 56px), transparent);
+  }
   .project-index li {
     position: relative;
     isolation: isolate;
@@ -352,7 +383,7 @@
     z-index: 2;
     align-items: center;
     gap: 9px;
-    padding: 9px 12px 9px 10px;
+    padding: clamp(6px, 1vh, 9px) 12px clamp(6px, 1vh, 9px) 10px;
     border-radius: 3px 3px 5px 5px;
     transform-origin: left center;
     /* Hairline grain, over the face. Declared as variables so :hover can swap
@@ -398,4 +429,17 @@
     background: radial-gradient(circle at 50% 22%, rgba(32, 31, 26, 0.13), rgba(32, 31, 26, 0.03) 62%, rgba(255, 253, 246, 0.5));
     box-shadow: inset 0 1.5px 2px rgba(32, 31, 26, 0.26), inset 0 -1.5px 0 rgba(255, 253, 246, 0.85);
   }
+}
+
+/* A short desktop window sets the name on one line: about half the height of
+   two, which is what lets the index keep all its keys. Sized to the column
+   width, so it fills the line instead of following the window's height. */
+@media (min-width: 901px) and (max-height: 680px) {
+  .intro h1 {
+    white-space: nowrap;
+    font-size: 17cqi;
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+  }
+  .intro h1 br { display: none; }
 }
