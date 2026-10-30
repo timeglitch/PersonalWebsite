@@ -102,6 +102,12 @@ export default function MicroficheViewer({
     /** The index the viewer itself last settled on, so its own snaps don't re-trigger travel. */
     const settledRef = useRef(activeIndex);
     const [ready, setReady] = useState(false);
+    /**
+     * Mirrors unitRef's halving for the stylesheet. Held as state rather than
+     * toggled on the element: React owns the stage's className, and the render
+     * that `ready` triggers would otherwise wipe a class added by hand.
+     */
+    const [narrow, setNarrow] = useState(false);
 
     const transport = useTransportAudio(soundOn);
     // Seeded rather than left false until the first effect runs: the opening
@@ -361,10 +367,10 @@ export default function MicroficheViewer({
             const box = entries[0].contentRect;
             const first = sizeRef.current.width === 0;
             sizeRef.current = { width: box.width, height: box.height };
-            const narrow = Math.min(box.width, box.height) < NARROW_SIDE;
-            unitRef.current = narrow ? SHEET.unit / 2 : SHEET.unit;
+            const isNarrow = Math.min(box.width, box.height) < NARROW_SIDE;
+            unitRef.current = isNarrow ? SHEET.unit / 2 : SHEET.unit;
             stage.style.setProperty("--unit", `${unitRef.current}px`);
-            stage.classList.toggle("is-narrow", narrow);
+            setNarrow(isNarrow);
             if (first) {
                 const index = settledRef.current;
                 const opening = clampView({
@@ -876,7 +882,7 @@ export default function MicroficheViewer({
 
     return (
         <div
-            className={`fiche-window ${ready ? "is-ready" : ""}`}
+            className={`fiche-window ${ready ? "is-ready" : ""} ${narrow ? "is-narrow" : ""}`}
             ref={stageRef}
             role="application"
             aria-roledescription="Microfiche viewer"
